@@ -50,8 +50,9 @@ public final class SwitchboardConstants {
 
     // this holds the credential "MD5:" + Digest.encodeMD5Hex(adminAccountUserName + ":" + adminRealm + ":" + password)
     // or the depreciated old style MapTools.encodeMD5Hex( Base64Order.standardCoder.encode(adminAccountUserName + ":" + password) )
-    public static final String ADMIN_ACCOUNT_B64MD5         = "adminAccountBase64MD5";
     public static final String ADMIN_ACCOUNT_USER_NAME      = "adminAccountUserName"; // by default 'admin'
+    public static final String ADMIN_ACCOUNT_B64MD5         = "adminAccountBase64MD5"; // by default the encoding of 'yacy' (MD5:8cffbc0d66567a0987a4aba1ec46d63c)
+    public static final String ADMIN_ACCOUNT_B64MD5_DEFAULT = "MD5:8cffbc0d66567a0987a4aba1ec46d63c"; // use this to check if the default setting was overwritten
     public static final String ADMIN_ACCOUNT_FOR_LOCALHOST  = "adminAccountForLocalhost";
     public static final String ADMIN_ACCOUNT_All_PAGES      = "adminAccountAllPages";
     public static final String ADMIN_REALM                  = "adminRealm";
@@ -64,7 +65,7 @@ public final class SwitchboardConstants {
     public static final String SERVER_PUBLICPORT            = "publicPort";
 
     public static final String PUBLIC_SEARCHPAGE            = "publicSearchpage";
-    
+
     public static final int   CRAWLJOB_SYNC = 0;
     public static final int   CRAWLJOB_STATUS = 1;
     // 20_dhtdistribution
@@ -81,6 +82,7 @@ public final class SwitchboardConstants {
     public static final String INDEX_DIST_LOADPREREQ        = "20_dhtdistribution_loadprereq";
     public static final String INDEX_DIST_IDLESLEEP         = "20_dhtdistribution_idlesleep";
     public static final String INDEX_DIST_BUSYSLEEP         = "20_dhtdistribution_busysleep";
+    public static final String INDEX_RECEIVE_LOADPREREQ     = "20_dhtreceive_loadprereq";
     // 30_peerping
     /**
      * <p><code>public static final String <strong>PEER_PING</strong> = "30_peerping"</code></p>
@@ -219,8 +221,6 @@ public final class SwitchboardConstants {
     public static final String INDEX_TRANSFER_GZIP_BODY         = "indexTransfer.gzipBody";
     public static final String PARSER_MIME_DENY                 = "parser.mime.deny";
     public static final String PARSER_EXTENSIONS_DENY           = "parser.extensions.deny";
-    public static final String PARSER_PDF_INDIVIDUALPAGES       = "parser.pdf.individualpages";
-    public static final String PARSER_PDF_INDIVIDUALPAGES_KEY   = "parser.pdf.individualpages.key";
     /**
      * <p><code>public static final String <strong>PROXY_ONLINE_CAUTION_DELAY</strong> = "onlineCautionDelay"</code></p>
      * <p>Name of the setting how long indexing should pause after the last time the proxy was used in milliseconds</p>
@@ -283,13 +283,13 @@ public final class SwitchboardConstants {
     public static final String REMOTESEARCH_MAXLOAD_RWI         = "remotesearch.maxload.rwi";
     
     /** Default maximum system load allowing remote RWI searches */
-    public static final float REMOTESEARCH_MAXLOAD_RWI_DEFAULT  = 8.0f;
+    public static final float REMOTESEARCH_MAXLOAD_RWI_DEFAULT  = 2.0f * (float) Runtime.getRuntime().availableProcessors();
     
     /** Setting key to configure the maximum system load allowing remote Solr searches */
     public static final String REMOTESEARCH_MAXLOAD_SOLR        = "remotesearch.maxload.solr";
     
     /** Default maximum system load allowing remote Solr searches */
-    public static final float REMOTESEARCH_MAXLOAD_SOLR_DEFAULT = 4.0f;
+    public static final float REMOTESEARCH_MAXLOAD_SOLR_DEFAULT = (float) Runtime.getRuntime().availableProcessors();
     
     /** Key of the setting controlling whether https should be preferred for remote searches, when available on the target peer */
     public static final String REMOTESEARCH_HTTPS_PREFERRED = "remotesearch.https.preferred";

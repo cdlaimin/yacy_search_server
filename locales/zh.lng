@@ -263,12 +263,12 @@ here.==在这里.
 start autosearch of new bookmarks==开始自动搜索新书签
 This starts a search of new or modified bookmarks since startup==开始搜索自从启动以来新的或修改的书签
 Every peer online will be ask for results.==每个在线的节点都会被索要结果。
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==要查看所有API的列表，请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>。
-To see a list of all APIs==要查看所有API的列表，请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>。
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==要查看所有API的列表，请访问<a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>。
+To see a list of all APIs==要查看所有API的列表，请访问<a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>。
 YaCy '#[clientname]#': Bookmarks==YaCy '#[clientname]#': 书签
 The bookmarks list can also be retrieved as RSS feed. This can also be done when you select a specific tag.==书签列表也能用作RSS订阅.当你选择某个标签时你也可执行这个操作.
 Click the API icon to load the RSS from the current selection.==点击API图标以从当前选择书签中载入RSS.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==获取所有API, 请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==获取所有API, 请访问<a href="https://wiki.yacy.net/index.php/Dev:API">API Wiki</a>.
 <h3>Bookmarks==<h3>书签
 Bookmarks (==书签(
 Login==登录
@@ -1031,31 +1031,6 @@ For minTokenLen = 2 the quantRate value should not be below 0.24; for minTokenLe
 "Re-Set to default"=="重置为默认"
 "Set"=="设置"
 The quantRate is a measurement for the number of words that take part in a signature computation. The higher the number==quantRate是参与签名计算的单词数量的度量。 数字越高，越少
-#-----------------------------
-
-#File: ContentControl_p.html
-#---------------------------
-Content Control<==内容控制<
-Peer Content Control URL Filter==节点内容控制地址过滤器
-With this settings you can activate or deactivate content control on this peer==使用此设置，你可以激活或取消激活此YaCy节点上的内容控制
-Use content control filtering:==使用内容控制过滤:
->Enabled<==>已启用<
-Enables or disables content control==启用或禁用内容控制
-Use this table to create filter:==使用此表创建过滤器:
-Define a table. Default:==定义一个表格. 默认:
-Content Control SMW Import Settings==内容控制SMW导入设置
-With this settings you can define the content control import settings. You can define a==使用此设置,你可以定义内容控制导入设置. 你可以定义一个
-Semantic Media Wiki with the appropriate extensions==语义媒体百科与适当的扩展
-SMW import to content control list:==SMW导入到内容控制列表:
-Enable or disable constant background synchronization of content control list from SMW (Semantic Mediawiki). Requires restart!==启用或禁用来自SMW（Semantic Mediawiki）的内容控制列表的恒定后台同步。 需要重启！
-SMW import base URL:==SMW导入基URL:
-Define base URL for SMW special page "Ask". Example: ==为SMW特殊页面“Ask”定义基础地址.例:
-SMW import target table:==SMW导入目标表:
-Define import target table. Default: contentcontrol==定义导入目标表. 默认值:contentcontrol
-Purge content control list on initial sync:==在初始同步时清除内容控制列表:
-Purge content control list on initial synchronisation after startup.==重启后，清除初始同步的内容控制列表.
-"Submit"=="提交"
-Define base URL for SMW special page "Ask". Example:==为SMW特殊页面“Ask”定义基础地址.例:
 #-----------------------------
 
 #File: ContentIntegrationPHPBB3_p.html
@@ -3592,7 +3567,7 @@ To see a list of all APIs, please visit the==To see a list of all APIs, please v
 Table Viewer==表格查看器
 The information that is presented on this page can also be retrieved as XML.==此页信息也可表示为XML.
 Click the API icon to see the XML.==点击API图标查看XML.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==查看所有API, 请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==查看所有API, 请访问<a href="https://wiki.yacy.net/index.php/Dev:API">API Wiki</a>.
 API wiki page==API百科页面
 To see a list of all APIs, please visit the==要查看所有API的列表，请访问
 >robots.txt table<==>robots.txt列表<
@@ -3870,7 +3845,7 @@ The data that is visualized here can also be retrieved in a XML file, which list
 With a GET-property 'about' you get only reference relations about the host that you give in the argument field for 'about'.==使用GET属性'about'仅能获得带有'about'参数的域关联关系.
 With a GET-property 'latest' you get a list of references that had been computed during the current run-time of YaCy, and with each next call only an update to the next list of references.==使用GET属性'latest'能获得当前的关联关系列表, 并且每一次调用都只能更新下一级关联关系列表.
 Click the API icon to see the XML file.==点击API图标查看XML文件.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==查看所有API, 请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==查看所有API, 请访问<a href="https://wiki.yacy.net/index.php/Dev:API">API Wiki</a>.
 Web Structure==网页结构
 host<==服务器<
 depth<==深度<
@@ -3976,7 +3951,7 @@ YaCy Interactive Search==YaCy交互搜索
 This search result can also be retrieved as RSS/<a href="http://www.opensearch.org" target="_blank">opensearch</a> output.==此搜索结果能以RSS/<a href="http://www.opensearch.org" target="_blank">opensearch</a>被形式检索。
 The query format is similar to <a href="http://www.loc.gov/standards/sru/" target="_blank">SRU</a>.==请求的格式与<a href="http://www.loc.gov/standards/sru/" target="_blank">SRU</a>相似。
 Click the API icon to see an example call to the search rss API.==点击API图标查看调用rss API的示例。
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==查看所有API, 请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API百科页面</a>。
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==查看所有API, 请访问<a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API百科页面</a>。
 >loading from local index...<==>从本地索引加载...<
 "Search"=="搜索"
 "Search..."=="搜索中..."
@@ -3987,7 +3962,7 @@ To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de
 YaCy '#[clientname]#': Location Search==YaCy '#[clientname]#':位置搜索
 The information that is presented on this page can also be retrieved as XML==此页面上显示的信息也可以作为XML检索
 Click the API icon to see the XML.==单击 API 图标以查看 XML。
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==要查看所有 API 的列表，请访问<a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki</a>页面。
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==要查看所有 API 的列表，请访问<a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki</a>页面。
 >search<==>搜索<
 #-----------------------------
 
@@ -4517,123 +4492,21 @@ could not be found.==未找到.
 Did you mean:==是不是:
 #-----------------------------
 
-### Subdirectory yacy ###
-#File: yacy/ui/index.html
-#---------------------------
-About YaCy-UI==关于YaCy-UI
-Admin Console==管理控制台
-"Bookmarks"=="书签"
->Bookmarks==>书签
-Server Log==服务器日志
-#-----------------------------
-
-#File: yacy/ui/js/jquery-flexigrid.js
+#File: js/jquery-flexigrid.js
 #---------------------------
 'Displaying {from} to {to} of {total} items'=='显示 {from} 到 {to}, 总共 {total} 个词条'
 'Processing, please wait ...'=='正在处理, 请稍候...'
 'No items'=='无词条'
 #-----------------------------
 
-#File: yacy/ui/js/jquery-ui-1.7.2.min.js
+#File: js/jquery-ui-1.7.2.min.js
 #---------------------------
 Loading&#8230;==正在加载&#8230;
 #-----------------------------
 
-#File: yacy/ui/js/jquery.ui.all.min.js
+#File: js/jquery.ui.all.min.js
 #---------------------------
 Loading&#8230;==正在加载&#8230;
-#-----------------------------
-
-#File: yacy/ui/sidebar/sidebar_1.html
-#---------------------------
-YaCy P2P Websearch==YaCy P2P搜索
-"Search"=="搜索"
->Text==>文本
->Images==>图片
->Audio==>音频
->Video==>视频
->Applications==>应用
-Search term:==搜索词条:
-# do not translate class="help" which only has technical html semantics
-alt="help"==alt="帮助"
-title="help"==title="帮助"
-Resource/Network:==资源/网络:
-freeworld==自由世界
-local peer==本地节点
->bookmarks==>书签
-sciencenet==ScienceNet
->Language:==>语言:
-any language==任意语言
-Bookmark Folders==书签目录
-#-----------------------------
-
-#File: yacy/ui/sidebar/sidebar_2.html
-#---------------------------
-Bookmark Tags<==标签<
-Search Options==搜索设置
-Constraint:==约束:
-all pages==所有页面
-index pages==索引页面
-URL mask:==URL过滤:
-Prefer mask:==首选过滤:
-Bookmark TagCloud==标签云
-Topwords<==顶部<
-alt="help"==alt="帮助"
-title="help"==title="帮助"
-#-----------------------------
-
-#File: yacy/ui/yacyui-admin.html
-#---------------------------
-Peer Control==节点控制
-"Login"=="登录"
-Themes==主题
-Messages==消息
-Re-Start==重启
-Shutdown==关闭
-Web Indexing==网页索引
-Crawl Start==开始爬取
-Monitoring==监控
-YaCy Network==YaCy网络
->Settings==>设置
-"Basic Settings"=="基本设置"
-	Basic==	基本
-Accounts==账户
-"Network"=="网络"
-	Network==	网络
-"Advanced Settings"=="高级设置"
-	Advanced==	高级
-"Update Settings"=="升级设置"
-	Update==	升级
->YaCy Project==>YaCy项目
-"YaCy Project Home"=="YaCy项目主页"
-	Project==	项目
-"YaCy Forum"=="YaCy论坛"
-"Help"=="帮助"
-#-----------------------------
-
-#File: yacy/ui/yacyui-bookmarks.html
-#---------------------------
-'Add'=='添加'
-'Crawl'=='爬取'
-'Edit'=='编辑'
-'Delete'=='删除'
-'Rename'=='重命名'
-'Help'=='帮助'
-"YaCy Bookmarks"=="YaCy书签"
-'Public'=='公有'
-'Title'=='题目'
-'Tags'=='标签'
-'Folders'=='目录'
-'Date'=='日期'
-#-----------------------------
-
-#File: yacy/ui/yacyui-welcome.html
-#---------------------------
->Overview==>概况
-YaCy-UI is going to be a JavaScript based client for YaCy based on the existing XML and JSON API.==YaCy-UI 是基于JavaScript的YaCy客户端, 它使用当前的XML和JSON API.
-YaCy-UI is at most alpha status, as there is still problems with retriving the search results.==YaCy-UI 尚在测试阶段, 所以在搜索时会有部分问题出现.
-I am currently changing the backend to a more application friendly format and getting good results with it (I will check that in some time after the stable release 0.7).==目前我正在修改程序后台, 以让其更加友善和搜索到更合适的结果(我会在稳定版0.7后改善此类问题).
-For now have a look at the bookmarks, performance has increased significantly, due to the use of JSON and Flexigrid!==就目前来说, 由于使用JSON和Flexigrid, 性能已获得显著提升!
 #-----------------------------
 
 # EOF

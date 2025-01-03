@@ -71,7 +71,7 @@ import net.yacy.kelondro.util.kelondroException;
 public class Table implements Index, Iterable<Row.Entry> {
 
     // static tracker objects
-    private final static ConcurrentLog log = new ConcurrentLog("TABLE");
+    private final static ConcurrentLog log = new ConcurrentLog("KELONDRO TABLE");
 
     /** Map all active table instances by file name */
     private final static Map<String, Table> tableTracker = new ConcurrentSkipListMap<String, Table>();
@@ -591,11 +591,6 @@ public class Table implements Index, Iterable<Row.Entry> {
         if (this.index != null) this.index.close();
         this.index = null;
         if (tablefile != null) tableTracker.remove(tablefile);
-    }
-
-    @Override
-    protected void finalize() {
-        if (this.file != null) close();
     }
 
     @Override

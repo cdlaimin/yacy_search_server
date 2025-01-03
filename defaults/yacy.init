@@ -328,7 +328,7 @@ releases = DATA/RELEASE
 # the following mime-types are a blacklist for indexing:
 # parser.mime.deny: specifies mime-types that shall not be indexed
 parser.mime.deny=
-parser.extensions.deny=
+parser.extensions.deny=iso,apk,dmg
 # The audioTagParser is disabled by default as it needs to create a temporary file each time an audio resource is parsed
 # Audio file extensions and media types can be enabled in the ConfigParser_p.html page if this is not a problem with your install 
 parser.enableAudioTags=false
@@ -453,10 +453,9 @@ use_proxyAccounts=true
 # The hash is calculated with net.yacy.cora.order.Digest, i.e.
 # > java -classpath classes net.yacy.cora.order.Digest -strfhex "admin:<realm>:<pw>"
 #adminAccountBase64=MD5:{admin:realm:mysecretpassword}
-adminAccountBase64MD5=
-# If you want a default password, use this setting, it sets the pw to "yacy"
-#adminAccountBase64MD5=MD5:8cffbc0d66567a0987a4aba1ec46d63c
+# The default password for the "admin" account is set to "yacy"
 adminAccountUserName=admin
+adminAccountBase64MD5=MD5:8cffbc0d66567a0987a4aba1ec46d63c
 
 # special access handling for users from localhost:
 # access from localhost may be granted with administration authority
@@ -598,7 +597,7 @@ proxyIndexingLocalMedia=true
 # proxy usage only for .yacy-Domains for autoconfig
 proxyYacyOnly=false
 
-# enable proxy via url (/proxy.html?url=http://yacy.net)
+# enable proxy via url (/proxy.html?url=https://yacy.net)
 proxyURL=false
 proxyURL.access=127.0.0.1,0:0:0:0:0:0:0:1
 # which urls to rewrite to /proxy.html?url=x (values: all, domainlist)
@@ -688,10 +687,15 @@ collection=user
 # the prereq-value is a memory pre-requisite: that much bytes must
 # be available/free in the heap; othervise the loop is not executed
 # and another idlesleep is performed
+recrawlindex_busysleep=10
+recrawlindex_idlesleep=2000
+recrawlindex_loadprereq=8.0
+recrawlindex_memprereq=1048576
 20_dhtdistribution_idlesleep=30000
 20_dhtdistribution_busysleep=15000
 20_dhtdistribution_memprereq=12582912
 20_dhtdistribution_loadprereq=2.0
+20_dhtreceive_loadprereq=2.0
 30_peerping_idlesleep=30000
 30_peerping_busysleep=30000
 30_peerping_memprereq=2097152
@@ -1284,8 +1288,8 @@ content.phpbb3.dumpfile =
 
 # search engine teaser: an about box in search results
 # this is only shown, if the about.body is filled
-about.headline=
-about.body=
+about.headline=Please Help Us
+about.body=<iframe src="/env/donate.html" style="border:none;"></iframe>
 
 donation.iframesource=https://yacy.net/include/donate.html
 donation.iframetarget=env/donate.html
@@ -1370,16 +1374,6 @@ core.service.webgraph.tmp = false
 parserAugmentation = false
 parserAugmentation.RDFa = false
 
-# Content control settings
-contentcontrol.enabled = false
-contentcontrol.bookmarklist = contentcontrol
-contentcontrol.mandatoryfilterlist = yacy
-contentcontrol.smwimport.enabled = false
-contentcontrol.smwimport.baseurl = 
-contentcontrol.smwimport.purgelistoninit = true
-contentcontrol.smwimport.targetlist = contentcontrol
-contentcontrol.smwimport.defaultcategory = yacy
-
 # host browser settings
 # Allow the administrator to stack URLs to the local crawl queue from the host browser page, automatically (when a path is unknown) or manually through a "load and index" link
 browser.autoload = false
@@ -1411,7 +1405,7 @@ postprocessing.partialUpdate = true
 # To use this user agent option, you must define completely different names and strings
 # and remove the given example here, which will be ignored by default.
 crawler.userAgent.name = yacybot
-crawler.userAgent.string = yacybot ($$SYSTEM$$) http://yacy.net/bot.html
+crawler.userAgent.string = yacybot ($$SYSTEM$$) https://yacy.net/bot.html
 crawler.userAgent.minimumdelta = 500
 crawler.userAgent.clienttimeout = 10000
 

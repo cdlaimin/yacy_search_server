@@ -311,7 +311,7 @@ YaCy '#[clientname]#': Bookmarks==YaCy '#[clientname]#': Закладки
 
 The bookmarks list can also be retrieved as RSS feed. This can also be done when you select a specific tag.==Список закладок можно также получить как RSS-ленту. Это может быть сделано при выборе конкретного тега .
 Click the API icon to load the RSS from the current selection.==Нажмите на иконку API для загрузки RSS из текущего выделения.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">wiki-страницу API</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">wiki-страницу API</a>.
 <h3>Bookmarks==<h3>Закладки
 Bookmarks (==Закладки (
 #Login==Логин
@@ -1059,30 +1059,6 @@ Duration==Длительность
 #ID==ID
 #-----------------------------
 
-#File: ContentControl_p.html
-#---------------------------
-Content Control<==Управление контентом<
-Peer Content Control URL Filter==Управление контентом узла
-With this settings you can activate or deactivate content control on this peer.==Эти настройки позволяют включить или отключить управление контентом для вашего узла.
-Use content control filtering:==Использовать фильтр управления контентом:
->Enabled<==>Включить<
-Enables or disables content control.==Включение или отключение управления контентом.
-Use this table to create filter:==Использовать это поле для создания фильтра:
-Define a table. Default:==Задать значение поля. По-умолчанию:
-Content Control SMW Import Settings==Импорт настроек управления контентом SMW
-With this settings you can define the content control import settings. You can define a==Эти настройки позволяют задать параметры импорта настроек управления контентом 
-Semantic Media Wiki with the appropriate extensions.==Semantic Media Wiki с соответствующими расширениями.
-SMW import to content control list:== Импорт SMW в список управления контентом:
-Enable or disable constant background synchronization of content control list from SMW (Semantic Mediawiki). Requires restart!==Включение или отключение постоянной фоновой синхронизации списка управления контентом из SMW (Semantic Mediawiki). Потребуется перезапуск программы!
-SMW import base URL:==Ссылка на импортируемую базу SMW:
-Define base URL for SMW special page "Ask". Example: ==Укажите ссылку на базу SMW на специальной странице "Ask". Например: 
-SMW import target table:==Поле назначения импорта SMW:
-Define import target table. Default: contentcontrol==Укажите поле назначения импорта.  По-умолчанию: contentcontrol
-Purge content control list on initial sync:==Удалить список управления контентом в начале синхронизации:
-Purge content control list on initial synchronisation after startup.==Удалить список управления контентом в начале синхронизации после запуска программы.
-"Submit"=="Сохранить"
-#-----------------------------
-
 
 #File: CookieMonitorIncoming_p.html
 #---------------------------
@@ -1797,7 +1773,7 @@ document containg <a href="http://www.w3.org/RDF/" target="_blank">RDF</a> annot
 The XHTML+RDFa data format is both a XML content format and a HTML display format and is considered as an important <a href="http://www.w3.org/2001/sw/" target="_blank">Semantic Web</a> content format.==Формат данных XHTML+RDFa в виде XML-содержания и HTML-отображения, рассматривается в качестве важного формата <a href="http://www.w3.org/2001/sw/" target="_blank">семантической сети</a>.
 The same content can also be retrieved as pure <a href="api/yacydoc.xml?urlhash=#[urlhash]#">XML metadata</a> with DC tag name vocabulary.==Некоторое содержимое может быть также получено в виде <a href="api/yacydoc.xml?urlhash=">XML-метаданных</a> с словарём тэгов имён DC.
 Click the API icon to see an example call to the search rss API.==Нажмите на иконку для просмотра API примера поиска по rss-ленте.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">страницу API wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">страницу API wiki</a>.
 URL Database Administration==Управление базой данных ссылок
 #URL References Administration==Управление URL-ссылками
 The local index currently contains #[ucount]# URL references==Локальный индекс содержит на данный момент #[ucount]# ссылок
@@ -2380,7 +2356,7 @@ YaCy Search Network==Мониторинг сети YaCy
 YaCy Network<==Сеть YaCy<
 The information that is presented on this page can also be retrieved as XML.==Информация, указанная на этой странице, также может быть получена как XML.
 Click the API icon to see the XML.==Нажмите на иконку API, чтобы увидеть XML.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">страницу в Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">страницу в Wiki</a>.
 Network Overview==Обзор сети
 Active&nbsp;Principal&nbsp;and&nbsp;Senior&nbsp;Peers==Активные главные и старшие узлы
 Passive&nbsp;Senior&nbsp;Peers==Пассивные старшие узлы
@@ -3672,7 +3648,7 @@ You can edit your profile <a href="ConfigProfile_p.html">here</a>==Вы може
 YaCy '#[clientname]#': Federated Index==YaCy '#[clientname]#': Управление словарём
 The information that is presented on this page can also be retrieved as XML==Информация представленная на этой странице, также может быть получена в виде XML.
 Click the API icon to see the RDF Ontology definition for this vocabulary.==Нажмите на иконку API для просмотра определения онтологии RDF для этого словаря.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API" target="_blank">страницу API Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">API wiki page</a>.==Для просмотра списка всех API, пожалуйста, посетите <a href="https://wiki.yacy.net/index.php/Dev:API" target="_blank">страницу API Wiki</a>.
 Vocabulary Administration==Управление словарём
 Vocabularies can be used to produce a search navigation. A vocabulary must be created before content is indexed.==Словари могут использоваться при выполнении навигации по поиску. Словарь должен быть создан до индексации содержимого сайта.
 The vocabulary is used to annotate the indexed content with a reference to the object that is denoted by the term of the vocabulary.==Словарь используется для комментирования проиндексированного содержимого с ссылкой на объект, которому присвоено значение из словаря.
@@ -4451,135 +4427,21 @@ THIS IS A DEMONSTRATION PAGE FOR YOUR OWN INDIVIDUAL WEB SERVER!==Это дем�
 >Date==>Дата
 #-----------------------------
 
-#File: yacy/ui/js/jquery-flexigrid.js
+#File: js/jquery-flexigrid.js
 #---------------------------
 'Displaying {from} to {to} of {total} items'=='Показываю {from} от {to} из {total} элементов'
 'Processing, please wait ...'=='Обработка, пожалуйста, подождите ...'
 'No items'=='Нет обьектов'
 #-----------------------------
 
-#File: yacy/ui/js/jquery-ui-1.7.2.min.js
+#File: js/jquery-ui-1.7.2.min.js
 #---------------------------
 Loading&#8230;==Загрузка&#8230;
 #-----------------------------
 
-#File: yacy/ui/js/jquery.ui.all.min.js
+#File: js/jquery.ui.all.min.js
 #---------------------------
 Loading&#8230;==Загрузка&#8230;
-#-----------------------------
-
-#File: yacy/ui/index.html
-#---------------------------
-About YaCy-UI==О YaCy
-Admin Console==Консоль администратора
-"Bookmarks"=="Закладки"
->Bookmarks==>Закладки
-Server Log==Лог сервера
-#-----------------------------
-
-#File: yacy/ui/yacyui-admin.html
-#---------------------------
-Peer Control==Управление узлами
-"Login"=="Логин"
-#Login==Логин
-Themes==Темы
-Messages==Сообщения
-Re-Start==Перезапуск
-Shutdown==Выключение
-Web Indexing==Вэб-индексирование
-Crawl Start==Запуск индексатора
-Monitoring==Мониторинг
-YaCy Network==Сеть YaCy
->Settings==>Настройки
-"Basic Settings"=="Основные настройки"
-	Basic==	Основные
-Accounts==Учётные записи
-"Network"=="Сеть"
-	Network==	Сеть
-"Advanced Settings"=="Расширенные настройки"
-	Advanced==	Расширенные
-"Update Settings"=="Настройки обновления"
-	Update==	Расширенные
->YaCy Project==>Проект YaCy
-"YaCy Project Home"=="Домашняя страница YaCy"
-	Project==	Проект
-"YaCy Statistics"=="YaCy Статистика"
-	Statistics==	Статистика
-"YaCy Forum"=="Форум YaCy"
-#Forum==Форум
-"Help"=="Помощь"
-#"YaCy Wiki"=="YaCy Wiki"
-#Wiki==Wiki
-#-----------------------------
-
-#File: yacy/ui/yacyui-bookmarks.html
-#---------------------------
-'Add'=='Добавить'
-'Crawl'=='Индексатор'
-'Edit'=='Изменить'
-'Delete'=='Удалить'
-'Rename'=='Переименовать'
-'Help'=='Переименовать'
-
-#"public bookmark"=="публичная закладка"
-#"private bookmark"=="личная закладка"
-
-#"delete bookmark"=="удалить закладку"
-"YaCy Bookmarks"=="YaCy Закладки"
-#>Title==>Заголовок
->Tags<==>Тэги<
-#>Date==>Дата
-#'Hash'=='Хэш'
-'Public'=='Общий'
-'Title'=='Заголовок'
-'Tags'=='Тэги'
-'Folders'=='Папки'
-'Date'=='Дата'
-#-----------------------------
-
-#File: yacy/ui/sidebar/sidebar_1.html
-#---------------------------
-YaCy P2P Websearch==YaCy P2P Поиск
-"Search"=="Поиск"
->Text==>Текст
->Images==>Изображения
->Audio==>Аудио
->Video==>Видео
->Applications==>Приложения
-Search term:==Условия поиска:
-"help"=="Помощь"
-Resource/Network:==Ресурс/Сеть:
-freeworld==freeworld
-local peer==локальный узел
->bookmarks==>закладки
-sciencenet==ScienceNet
->Language:==>Язык:
-any language==любой язык
-Bookmark Folders==Папки закладок
-#-----------------------------
-
-#File: yacy/ui/sidebar/sidebar_2.html
-#---------------------------
-Bookmark Tags<==Закладки и тэги<
-Search Options==Опции поиска
-Constraint:==Ограничение:
-all pages==все страницы
-index pages==проиндексированные страницы
-URL mask:==фильтр URL-адресов:
-Prefer mask:==Предпочтительный фильтр:
-Bookmark TagCloud==Облако тэгов
-Topwords<==Top Wörter<
-alt="help"==alt="Помощь"
-title="help"==title="Помощь"
-#-----------------------------
-
-#File: yacy/ui/yacyui-welcome.html
-#---------------------------
->Overview==>Обзор
-#YaCy-UI is going to be a JavaScript based client for YaCy based on the existing XML and JSON API.==YaCy-UI wird ein in JavaScript geschriebener Client für YaCy, der auf der existierenden XML und JSON API aufbaut.
-#YaCy-UI is at most alpha status, as there is still problems with retriving the search results.==YaCy-UI ist bestenfalls im Alpha Stadium, da es immer noch Probleme beim Abholen der Suchergebnisse gibt.
-#I am currently changing the backend to a more application friendly format and getting good results with it (I will check that in some time after the stable release 0.7).==Ich ändere gerade das Backend in ein andwendungsfreundlicheres Format und bekomme gute Ergebnisse damit (Ich werde die Änderungen einige Zeit nach der Veröffentlichung der stabilen Version 0.7 einchecken).
-#For now have a look at the bookmarks, performance has increased significantly, due to the use of JSON and Flexigrid!==Aktuell können Sie sich die Lesezeichen ansehen - Die Performance hat sich signifikant gebessert durch die Verwendung von JSON und Flexigrid!
 #-----------------------------
 
 #File: api/citation.html

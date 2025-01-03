@@ -55,7 +55,6 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -99,26 +98,13 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.search.SyntaxError;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import com.cybozu.labs.langdetect.DetectorFactory;
 import com.cybozu.labs.langdetect.LangDetectException;
 import com.google.common.io.Files;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.InterfacesConfig;
-import com.hazelcast.config.JoinConfig;
-import com.hazelcast.config.NetworkConfig;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 
-import net.yacy.contentcontrol.ContentControlFilterUpdateThread;
-import net.yacy.contentcontrol.SMWListSyncThread;
-import net.yacy.cora.date.AbstractFormatter;
+import net.yacy.yacy;
 import net.yacy.cora.date.GenericFormatter;
-import net.yacy.cora.date.ISO8601Formatter;
 import net.yacy.cora.document.WordCache;
 import net.yacy.cora.document.analysis.Classification;
 import net.yacy.cora.document.encoding.ASCII;
@@ -131,12 +117,10 @@ import net.yacy.cora.document.id.DigestURL;
 import net.yacy.cora.document.id.MultiProtocolURL;
 import net.yacy.cora.federate.solr.FailCategory;
 import net.yacy.cora.federate.solr.Ranking;
-import net.yacy.cora.federate.solr.SolrType;
 import net.yacy.cora.federate.solr.connector.ShardSelection;
 import net.yacy.cora.federate.solr.instance.EmbeddedInstance;
 import net.yacy.cora.federate.solr.instance.RemoteInstance;
 import net.yacy.cora.federate.yacy.CacheStrategy;
-import net.yacy.cora.language.synonyms.SynonymLibrary;
 import net.yacy.cora.lod.vocabulary.Tagging;
 import net.yacy.cora.order.Base64Order;
 import net.yacy.cora.order.Digest;
@@ -190,8 +174,10 @@ import net.yacy.document.Tokenizer;
 import net.yacy.document.VocabularyScraper;
 import net.yacy.document.content.DCEntry;
 import net.yacy.document.content.SurrogateReader;
+import net.yacy.document.importer.JsonListImporter;
 import net.yacy.document.importer.OAIListFriendsLoader;
 import net.yacy.document.importer.WarcImporter;
+import net.yacy.document.importer.ZimImporter;
 import net.yacy.document.parser.audioTagParser;
 import net.yacy.document.parser.pdfParser;
 import net.yacy.document.parser.html.Evaluation;
@@ -275,10 +261,9 @@ public final class Switchboard extends serverSwitch {
     public static WikiParser wikiParser = null;
 
     // storage management
-    public File htCachePath;
     public final File dictionariesPath, classificationPath;
     public File listsPath;
-    public File htDocsPath;
+    public File htDocsPath, htRootPath, htCachePath;
     public File workPath;
     public File releasePath;
     public File networkRoot;
@@ -313,7 +298,6 @@ public final class Switchboard extends serverSwitch {
     public LinkedBlockingQueue<String> trail; // connect infos from cytag servlet
     public SeedDB peers;
     public Set<String> localcluster_scan;
-    public HazelcastInstance localcluster_hazelcast;
     public WorkTables tables;
     public Tray tray;
     private long lastStats = 0; // time when the last row was written to the stats table
@@ -333,7 +317,6 @@ public final class Switchboard extends serverSwitch {
     private boolean startupAction = true; // this is set to false after the first event
     private static Switchboard sb;
     public HashMap<String, Object[]> crawlJobsStatus = new HashMap<>();
-    public String emptyPasswordAdminAccount;
 
     public Switchboard(final File dataPath, final File appPath, final String initPath, final String configPath) {
         super(dataPath, appPath, initPath, configPath);
@@ -343,8 +326,8 @@ public final class Switchboard extends serverSwitch {
         if (TimeoutRequest.ping(Domains.LOCALHOST, port, 500)) {
             throw new RuntimeException(
                     "a server is already running on the YaCy port "
-                    + port
-                    + "; possibly another YaCy process has not terminated yet. Please stop YaCy before running a new instance.");
+                            + port
+                            + "; possibly another YaCy process has not terminated yet. Please stop YaCy before running a new instance.");
         }
 
         MemoryTracker.startSystemProfiling();
@@ -390,11 +373,12 @@ public final class Switchboard extends serverSwitch {
         this.log.config("Index Primary Path: " + indexPath.toString());
         final File archivePath = this.getDataPath(SwitchboardConstants.INDEX_ARCHIVE_PATH, SwitchboardConstants.INDEX_ARCHIVE_DEFAULT);
         this.log.config("Index Archive Path: " + archivePath.toString());
-        this.listsPath =
-            this.getDataPath(SwitchboardConstants.LISTS_PATH, SwitchboardConstants.LISTS_PATH_DEFAULT);
+        this.listsPath = this.getDataPath(SwitchboardConstants.LISTS_PATH, SwitchboardConstants.LISTS_PATH_DEFAULT);
         this.log.config("Lists Path:     " + this.listsPath.toString());
-        this.htDocsPath =
-            this.getDataPath(SwitchboardConstants.HTDOCS_PATH, SwitchboardConstants.HTDOCS_PATH_DEFAULT);
+        this.htRootPath = this.getDataPath(SwitchboardConstants.HTROOT_PATH, SwitchboardConstants.HTROOT_PATH_DEFAULT); // path to the servlets
+        this.log.config("HTROOT Path:    " + this.htRootPath.toString());
+        this.htDocsPath = this.getDataPath(SwitchboardConstants.HTDOCS_PATH, SwitchboardConstants.HTDOCS_PATH_DEFAULT); // a mirror to htroot
+        yacy.mkdirIfNeseccary(this.htDocsPath);
         this.log.config("HTDOCS Path:    " + this.htDocsPath.toString());
         this.workPath = this.getDataPath(SwitchboardConstants.WORK_PATH, SwitchboardConstants.WORK_PATH_DEFAULT);
         this.workPath.mkdirs();
@@ -416,17 +400,17 @@ public final class Switchboard extends serverSwitch {
         this.log.config("Work Path:    " + this.workPath.toString());
 
         this.dictionariesPath =
-            this.getDataPath(
-                SwitchboardConstants.DICTIONARY_SOURCE_PATH,
-                SwitchboardConstants.DICTIONARY_SOURCE_PATH_DEFAULT);
+                this.getDataPath(
+                        SwitchboardConstants.DICTIONARY_SOURCE_PATH,
+                        SwitchboardConstants.DICTIONARY_SOURCE_PATH_DEFAULT);
         this.log.config("Dictionaries Path:" + this.dictionariesPath.toString());
         if (!this.dictionariesPath.exists()) this.dictionariesPath.mkdirs();
 
         this.classificationPath =
                 this.getDataPath(
-                    SwitchboardConstants.CLASSIFICATION_SOURCE_PATH,
-                    SwitchboardConstants.CLASSIFICATION_SOURCE_PATH_DEFAULT);
-            this.log.config("Classification Path:" + this.classificationPath.toString());
+                        SwitchboardConstants.CLASSIFICATION_SOURCE_PATH,
+                        SwitchboardConstants.CLASSIFICATION_SOURCE_PATH_DEFAULT);
+        this.log.config("Classification Path:" + this.classificationPath.toString());
         if (!this.classificationPath.exists()) this.classificationPath.mkdirs();
 
         CollectionConfiguration.UNIQUE_HEURISTIC_PREFER_HTTPS = this.getConfigBool("search.ranking.uniqueheuristic.preferhttps", false);
@@ -466,9 +450,6 @@ public final class Switchboard extends serverSwitch {
             }
         }.start();
 
-        // define the "non-password password"
-        this.emptyPasswordAdminAccount = this.encodeDigestAuth(this.getConfig(SwitchboardConstants.ADMIN_ACCOUNT_USER_NAME,"admin"), "");
-
         // init the language detector
         this.log.config("Loading language profiles");
         try {
@@ -501,8 +482,6 @@ public final class Switchboard extends serverSwitch {
         // load the network definition
         try {
             this.overwriteNetworkDefinition(this.getSysinfo());
-        } catch (final FileNotFoundException e) {
-            ConcurrentLog.logException(e);
         } catch (final IOException e) {
             ConcurrentLog.logException(e);
         }
@@ -567,6 +546,13 @@ public final class Switchboard extends serverSwitch {
             solrWebgraphConfigurationWork.commit();
         } catch (final IOException e) {ConcurrentLog.logException(e);}
 
+        // define load limitation according to current number of cpu cores
+        if (this.firstInit) {
+            float numberOfCores2 = 2.0f * (float) Runtime.getRuntime().availableProcessors();
+            sb.setConfig(SwitchboardConstants.CRAWLJOB_LOCAL_CRAWL_LOADPREREQ, numberOfCores2);
+            sb.setConfig(SwitchboardConstants.SURROGATES_LOADPREREQ, numberOfCores2);
+        }
+        
         // define boosts
         Ranking.setMinTokenLen(this.getConfigInt(SwitchboardConstants.SEARCH_RANKING_SOLR_DOUBLEDETECTION_MINLENGTH, 3));
         Ranking.setQuantRate(this.getConfigFloat(SwitchboardConstants.SEARCH_RANKING_SOLR_DOUBLEDETECTION_QUANTRATE, 0.5f));
@@ -580,7 +566,7 @@ public final class Switchboard extends serverSwitch {
             String bf = this.getConfig(SwitchboardConstants.SEARCH_RANKING_SOLR_COLLECTION_BOOSTFUNCTION_ + i, "");
             // apply some hard-coded patches for earlier experiments we do not want any more
             if (bf.equals("product(recip(rord(last_modified),1,1000,1000),div(product(log(product(references_external_i,references_exthosts_i)),div(references_internal_i,host_extent_i)),add(crawldepth_i,1)))") ||
-                bf.equals("scale(cr_host_norm_i,1,20)")) bf = "";
+                    bf.equals("scale(cr_host_norm_i,1,20)")) bf = "";
             if (bf.equals("recip(rord(last_modified),1,1000,1000)")) bf = "recip(ms(NOW,last_modified),3.16e-11,1,1)"; // that was an outdated date boost that did not work well
             if (i == 0 && bq.equals("fuzzy_signature_unique_b:true^100000.0")) bq = "crawldepth_i:0^0.8 crawldepth_i:1^0.4";
             if (bq.equals("crawldepth_i:0^0.8 crawldepth_i:1^0.4")) bq = "crawldepth_i:0^0.8\ncrawldepth_i:1^0.4"; // Fix issue with multiple Boost Queries
@@ -632,16 +618,16 @@ public final class Switchboard extends serverSwitch {
         // initialize network database
         final File mySeedFile = new File(this.networkRoot, SeedDB.DBFILE_OWN_SEED);
         this.peers =
-            new SeedDB(
-                this.networkRoot,
-                "seed.new.heap",
-                "seed.old.heap",
-                "seed.pot.heap",
-                mySeedFile,
-                redundancy,
-                partitionExponent,
-                false,
-                this.exceed134217727);
+                new SeedDB(
+                        this.networkRoot,
+                        "seed.new.heap",
+                        "seed.old.heap",
+                        "seed.pot.heap",
+                        mySeedFile,
+                        redundancy,
+                        partitionExponent,
+                        false,
+                        this.exceed134217727);
         final String agent = this.getConfig(SwitchboardConstants.NETWORK_UNIT_AGENT, "");
         if (!agent.isEmpty()) this.peers.setMyName(agent); // this can thus be set using the environment variable yacy.network.unit.agent
 
@@ -656,18 +642,6 @@ public final class Switchboard extends serverSwitch {
                 }
             }.start();
         }
-
-        // initialize hazelcast
-        final InterfacesConfig interfacesConfig = new InterfacesConfig();
-        Domains.myIntranetIPs().forEach(ip -> interfacesConfig.addInterface(ip.getHostAddress()));
-        final NetworkConfig networkConfig = new NetworkConfig().setInterfaces(interfacesConfig);
-        final JoinConfig join = networkConfig.getJoin();
-        join.getMulticastConfig().setEnabled(true);
-        final Config config = new Config().setClusterName("YaCyP2P").setInstanceName("Peer").setNetworkConfig(networkConfig);
-        config.getCPSubsystemConfig().setCPMemberCount(3);
-        this.localcluster_hazelcast = Hazelcast.newHazelcastInstance(config);
-        final String uuid = this.localcluster_hazelcast.getCluster().getLocalMember().getUuid().toString();
-        this.localcluster_hazelcast.getMap("status").put(uuid, Memory.status());
 
         // load domainList
         try {
@@ -727,7 +701,7 @@ public final class Switchboard extends serverSwitch {
         if ( blueList == null ) {
             // read only once upon first instantiation of this class
             final String f =
-                this.getConfig(SwitchboardConstants.LIST_BLUE, SwitchboardConstants.LIST_BLUE_DEFAULT);
+                    this.getConfig(SwitchboardConstants.LIST_BLUE, SwitchboardConstants.LIST_BLUE_DEFAULT);
             final File plasmaBlueListFile = new File(f);
             if ( f != null ) {
                 blueList = SetTools.loadList(plasmaBlueListFile, NaturalOrder.naturalComparator);
@@ -735,17 +709,17 @@ public final class Switchboard extends serverSwitch {
                 blueList = new TreeSet<>();
             }
             this.log.config("loaded blue-list from file "
-                + plasmaBlueListFile.getName()
-                + ", "
-                + blueList.size()
-                + " entries, "
-                + ppRamString(plasmaBlueListFile.length() / 1024));
+                    + plasmaBlueListFile.getName()
+                    + ", "
+                    + blueList.size()
+                    + " entries, "
+                    + ppRamString(plasmaBlueListFile.length() / 1024));
         }
 
         // load blacklist
         this.log.config("Loading blacklist ...");
         final File blacklistsPath =
-            this.getDataPath(SwitchboardConstants.LISTS_PATH, SwitchboardConstants.LISTS_PATH_DEFAULT);
+                this.getDataPath(SwitchboardConstants.LISTS_PATH, SwitchboardConstants.LISTS_PATH_DEFAULT);
         urlBlacklist = new Blacklist(blacklistsPath);
         ListManager.switchboard = this;
         ListManager.listsPath = blacklistsPath;
@@ -754,7 +728,7 @@ public final class Switchboard extends serverSwitch {
         // Set jvm default locale to match UI language (
         String lng = this.getConfig("locale.language", "en");
         if (!"browser".equals(lng) && !"default".equals(lng)) {
-            Locale.setDefault(new Locale(lng));
+            Locale.setDefault(Locale.forLanguageTag(lng));
         } else {
             lng = "en"; // default = English
         }
@@ -767,11 +741,11 @@ public final class Switchboard extends serverSwitch {
             }
             badwords = SetTools.loadList(badwordsFile, NaturalOrder.naturalComparator);
             this.log.config("loaded badwords from file "
-                + badwordsFile.getName()
-                + ", "
-                + badwords.size()
-                + " entries, "
-                + ppRamString(badwordsFile.length() / 1024));
+                    + badwordsFile.getName()
+                    + ", "
+                    + badwords.size()
+                    + " entries, "
+                    + ppRamString(badwordsFile.length() / 1024));
         }
 
         // load stopwords (to filter query and topwords)
@@ -804,10 +778,10 @@ public final class Switchboard extends serverSwitch {
 
         // create the cache directory
         this.htCachePath =
-            this.getDataPath(SwitchboardConstants.HTCACHE_PATH, SwitchboardConstants.HTCACHE_PATH_DEFAULT);
+                this.getDataPath(SwitchboardConstants.HTCACHE_PATH, SwitchboardConstants.HTCACHE_PATH_DEFAULT);
         this.log.info("HTCACHE Path = " + this.htCachePath.getAbsolutePath());
         final long maxCacheSize =
-            1024L * 1024L * Long.parseLong(this.getConfig(SwitchboardConstants.PROXY_CACHE_SIZE, "2")); // this is megabyte
+                1024L * 1024L * Long.parseLong(this.getConfig(SwitchboardConstants.PROXY_CACHE_SIZE, "2")); // this is megabyte
         Cache.init(this.htCachePath, this.peers.mySeed().hash, maxCacheSize,
                 this.getConfigLong(SwitchboardConstants.HTCACHE_SYNC_LOCK_TIMEOUT,
                         SwitchboardConstants.HTCACHE_SYNC_LOCK_TIMEOUT_DEFAULT),
@@ -819,15 +793,15 @@ public final class Switchboard extends serverSwitch {
 
         // create the surrogates directories
         this.surrogatesInPath =
-            this.getDataPath(
-                SwitchboardConstants.SURROGATES_IN_PATH,
-                SwitchboardConstants.SURROGATES_IN_PATH_DEFAULT);
+                this.getDataPath(
+                        SwitchboardConstants.SURROGATES_IN_PATH,
+                        SwitchboardConstants.SURROGATES_IN_PATH_DEFAULT);
         this.log.info("surrogates.in Path = " + this.surrogatesInPath.getAbsolutePath());
         this.surrogatesInPath.mkdirs();
         this.surrogatesOutPath =
-            this.getDataPath(
-                SwitchboardConstants.SURROGATES_OUT_PATH,
-                SwitchboardConstants.SURROGATES_OUT_PATH_DEFAULT);
+                this.getDataPath(
+                        SwitchboardConstants.SURROGATES_OUT_PATH,
+                        SwitchboardConstants.SURROGATES_OUT_PATH_DEFAULT);
         this.log.info("surrogates.out Path = " + this.surrogatesOutPath.getAbsolutePath());
         this.surrogatesOutPath.mkdirs();
 
@@ -843,7 +817,7 @@ public final class Switchboard extends serverSwitch {
 
         // create the release download directory
         this.releasePath =
-            this.getDataPath(SwitchboardConstants.RELEASE_PATH, SwitchboardConstants.RELEASE_PATH_DEFAULT);
+                this.getDataPath(SwitchboardConstants.RELEASE_PATH, SwitchboardConstants.RELEASE_PATH_DEFAULT);
         this.releasePath.mkdirs();
         this.log.info("RELEASE Path = " + this.releasePath.getAbsolutePath());
 
@@ -941,12 +915,29 @@ public final class Switchboard extends serverSwitch {
 
         TextParser.setDenyMime(this.getConfig(SwitchboardConstants.PARSER_MIME_DENY, ""));
         TextParser.setDenyExtension(this.getConfig(SwitchboardConstants.PARSER_EXTENSIONS_DENY, ""));
-        pdfParser.individualPages = this.getConfigBool(SwitchboardConstants.PARSER_PDF_INDIVIDUALPAGES, false);
-        pdfParser.individualPagePropertyname = this.getConfig(SwitchboardConstants.PARSER_PDF_INDIVIDUALPAGES_KEY, "page");
 
         // start a loader
         this.log.config("Starting Crawl Loader");
         this.loader = new LoaderDispatcher(this);
+
+        // load donation frame
+        new Thread("yacy.importDonationIFrame") {
+            @Override
+            public void run() {
+                final ClientIdentification.Agent agent = ClientIdentification.getAgent(ClientIdentification.yacyInternetCrawlerAgentName);
+                try {
+                    final Response documentResponse = Switchboard.this.loader.load(Switchboard.this.loader.request(new DigestURL(getConfig("donation.iframesource", "")), false, true), CacheStrategy.NOCACHE, Integer.MAX_VALUE, null, agent);
+                    if (documentResponse != null) FileUtils.copy(documentResponse.getContent(), new File(Switchboard.this.htDocsPath, getConfig("donation.iframetarget", "")));
+                } catch (final Exception e) {}
+            }
+        }.start();
+
+        // load oai tables
+        final Map<String, File> oaiFriends =
+                OAIListFriendsLoader.loadListFriendsSources(
+                        new File(appPath, "defaults/oaiListFriendsSource.xml"),
+                        this.getDataPath());
+        OAIListFriendsLoader.init(this.loader, oaiFriends, ClientIdentification.yacyInternetCrawlerAgent);
 
         // load the robots.txt db
         this.log.config("Initializing robots.txt DB");
@@ -957,13 +948,6 @@ public final class Switchboard extends serverSwitch {
         } catch (final IOException e) {
             ConcurrentLog.logException(e);
         }
-
-        // load oai tables
-        final Map<String, File> oaiFriends =
-            OAIListFriendsLoader.loadListFriendsSources(
-                new File(appPath, "defaults/oaiListFriendsSource.xml"),
-                this.getDataPath());
-        OAIListFriendsLoader.init(this.loader, oaiFriends, ClientIdentification.yacyInternetCrawlerAgent);
         this.crawlQueues = new CrawlQueues(this, this.queuesRoot);
 
         // on startup, resume all crawls
@@ -987,14 +971,8 @@ public final class Switchboard extends serverSwitch {
         this.remoteSearchTracker = new ConcurrentHashMap<>();
 
         // init messages: clean up message symbol
-        final File notifierSource =
-            new File(this.getAppPath(), this.getConfig(
-                SwitchboardConstants.HTROOT_PATH,
-                SwitchboardConstants.HTROOT_PATH_DEFAULT) + "/env/grafics/empty.gif");
-        final File notifierDest =
-            new File(
-                this.getDataPath(SwitchboardConstants.HTDOCS_PATH, SwitchboardConstants.HTDOCS_PATH_DEFAULT),
-                "notifier.gif");
+        final File notifierSource = new File(this.htRootPath.getAbsolutePath() + "/env/grafics/empty.gif");
+        final File notifierDest = new File(this.htDocsPath, "notifier.gif");
         try {
             Files.copy(notifierSource, notifierDest);
         } catch (final IOException e ) {
@@ -1005,8 +983,8 @@ public final class Switchboard extends serverSwitch {
             Domains.setNoCachingPatterns(this.getConfig(SwitchboardConstants.HTTPC_NAME_CACHE_CACHING_PATTERNS_NO, ""));
         } catch (final PatternSyntaxException pse) {
             ConcurrentLog.severe("Switchboard", "Invalid regular expression in "
-                            + SwitchboardConstants.HTTPC_NAME_CACHE_CACHING_PATTERNS_NO
-                            + " property: " + pse.getMessage());
+                    + SwitchboardConstants.HTTPC_NAME_CACHE_CACHING_PATTERNS_NO
+                    + " property: " + pse.getMessage());
             System.exit(-1);
         }
 
@@ -1034,15 +1012,15 @@ public final class Switchboard extends serverSwitch {
 
         // initializing the stackCrawlThread
         this.crawlStacker =
-            new CrawlStacker(
-                this.robots,
-                this.crawlQueues,
-                this.crawler,
-                this.index,
-                this.peers,
-                this.isIntranetMode(),
-                this.isGlobalMode(),
-                this.domainList); // Intranet and Global mode may be both true!
+                new CrawlStacker(
+                        this.robots,
+                        this.crawlQueues,
+                        this.crawler,
+                        this.index,
+                        this.peers,
+                        this.isIntranetMode(),
+                        this.isGlobalMode(),
+                        this.domainList); // Intranet and Global mode may be both true!
 
         // possibly switch off localIP check
         Domains.setNoLocalCheck(this.isAllIPMode());
@@ -1070,52 +1048,52 @@ public final class Switchboard extends serverSwitch {
 
         // deploy blocking threads
         this.indexingStorageProcessor =
-            new WorkflowProcessor<>(
-                "storeDocumentIndex",
-                "This is the sequencing step of the indexing queue. Files are written as streams, too much councurrency would destroy IO performance. In this process the words are written to the RWI cache, which flushes if it is full.",
-                new String[] {
-                    "RWI/Cache/Collections"
-                },
-                in -> {
-                    Switchboard.this.storeDocumentIndex(in);
-                    return null;
-                },
-                2,
-                null,
-                1);
+                new WorkflowProcessor<>(
+                        "storeDocumentIndex",
+                        "This is the sequencing step of the indexing queue. Files are written as streams, too much councurrency would destroy IO performance. In this process the words are written to the RWI cache, which flushes if it is full.",
+                        new String[] {
+                                "RWI/Cache/Collections"
+                        },
+                        in -> {
+                            Switchboard.this.storeDocumentIndex(in);
+                            return null;
+                        },
+                        2,
+                        null,
+                        1);
         this.indexingAnalysisProcessor =
-            new WorkflowProcessor<>(
-                "webStructureAnalysis",
-                "This just stores the link structure of the document into a web structure database.",
-                new String[] {
-                    "storeDocumentIndex"
-                },
-                in -> Switchboard.this.webStructureAnalysis(in),
-                WorkflowProcessor.availableCPU + 1,
-                this.indexingStorageProcessor,
-                WorkflowProcessor.availableCPU);
+                new WorkflowProcessor<>(
+                        "webStructureAnalysis",
+                        "This just stores the link structure of the document into a web structure database.",
+                        new String[] {
+                                "storeDocumentIndex"
+                        },
+                        in -> Switchboard.this.webStructureAnalysis(in),
+                        WorkflowProcessor.availableCPU + 1,
+                        this.indexingStorageProcessor,
+                        WorkflowProcessor.availableCPU);
         this.indexingCondensementProcessor =
-            new WorkflowProcessor<>(
-                "condenseDocument",
-                "This does a structural analysis of plain texts: markup of headlines, slicing into phrases (i.e. sentences), markup with position, counting of words, calculation of term frequency.",
-                new String[] {
-                    "webStructureAnalysis"
-                },
-                in -> Switchboard.this.condenseDocument(in),
-                WorkflowProcessor.availableCPU + 1,
-                this.indexingAnalysisProcessor,
-                WorkflowProcessor.availableCPU);
+                new WorkflowProcessor<>(
+                        "condenseDocument",
+                        "This does a structural analysis of plain texts: markup of headlines, slicing into phrases (i.e. sentences), markup with position, counting of words, calculation of term frequency.",
+                        new String[] {
+                                "webStructureAnalysis"
+                        },
+                        in -> Switchboard.this.condenseDocument(in),
+                        WorkflowProcessor.availableCPU + 1,
+                        this.indexingAnalysisProcessor,
+                        WorkflowProcessor.availableCPU);
         this.indexingDocumentProcessor =
-            new WorkflowProcessor<>(
-                "parseDocument",
-                "This does the parsing of the newly loaded documents from the web. The result is not only a plain text document, but also a list of URLs that are embedded into the document. The urls are handed over to the CrawlStacker. This process has two child process queues!",
-                new String[] {
-                    "condenseDocument", "CrawlStacker"
-                },
-                in -> Switchboard.this.parseDocument(in),
-                Math.max(20, WorkflowProcessor.availableCPU * 2), // it may happen that this is filled with new files from the search process. That means there should be enough place for two result pages
-                this.indexingCondensementProcessor,
-                WorkflowProcessor.availableCPU);
+                new WorkflowProcessor<>(
+                        "parseDocument",
+                        "This does the parsing of the newly loaded documents from the web. The result is not only a plain text document, but also a list of URLs that are embedded into the document. The urls are handed over to the CrawlStacker. This process has two child process queues!",
+                        new String[] {
+                                "condenseDocument", "CrawlStacker"
+                        },
+                        in -> Switchboard.this.parseDocument(in),
+                        Math.max(20, WorkflowProcessor.availableCPU * 2), // it may happen that this is filled with new files from the search process. That means there should be enough place for two result pages
+                        this.indexingCondensementProcessor,
+                        WorkflowProcessor.availableCPU);
 
         // deploy busy threads
         this.log.config("Starting Threads");
@@ -1168,10 +1146,10 @@ public final class Switchboard extends serverSwitch {
                 60000); // all 10 minutes, wait 1 minute until first run
 
         this.deployThread(
-            SwitchboardConstants.SURROGATES,
-            "Surrogates",
-            "A thread that polls the SURROGATES path and puts all Documents in one surroagte file into the indexing queue.",
-            null,
+                SwitchboardConstants.SURROGATES,
+                "Surrogates",
+                "A thread that polls the SURROGATES path and puts all Documents in one surroagte file into the indexing queue.",
+                null,
                 new InstantBusyThread("Switchboard.surrogateProcess", 20000, 0) {
                     @Override
                     public boolean jobImpl() throws Exception {
@@ -1188,100 +1166,79 @@ public final class Switchboard extends serverSwitch {
                         Switchboard.this.surrogateFreeMem();
                     }
                 },
-            10000);
+                10000);
 
         this.initRemoteCrawler(this.getConfigBool(SwitchboardConstants.CRAWLJOB_REMOTE, false));
         this.initAutocrawl(this.getConfigBool(SwitchboardConstants.AUTOCRAWL, false));
 
         final CrawlQueues crawlQueue = this.crawlQueues;
         this.deployThread(
-            SwitchboardConstants.CRAWLJOB_LOCAL_CRAWL,
-            "Local Crawl",
-            "thread that performes a single crawl step from the local crawl queue",
-            "/IndexCreateQueues_p.html?stack=LOCAL",
-            new InstantBusyThread("CrawlQueues.coreCrawlJob", 0, 0) {
-                @Override
-                public boolean jobImpl() throws Exception {
-                    return crawlQueue.coreCrawlJob();
-                }
+                SwitchboardConstants.CRAWLJOB_LOCAL_CRAWL,
+                "Local Crawl",
+                "thread that performes a single crawl step from the local crawl queue",
+                "/IndexCreateQueues_p.html?stack=LOCAL",
+                new InstantBusyThread("CrawlQueues.coreCrawlJob", 0, 0) {
+                    @Override
+                    public boolean jobImpl() throws Exception {
+                        return crawlQueue.coreCrawlJob();
+                    }
 
-                @Override
-                public int getJobCount() {
-                    return crawlQueue.coreCrawlJobSize();
-                }
+                    @Override
+                    public int getJobCount() {
+                        return crawlQueue.coreCrawlJobSize();
+                    }
 
-                @Override
-                public void freememImpl() {
-                    crawlQueue.freemem();
-                }
-            },
-            10000);
+                    @Override
+                    public void freememImpl() {
+                        crawlQueue.freemem();
+                    }
+                },
+                10000);
 
         final Network net = this.yc;
         this.deployThread(
-            SwitchboardConstants.SEED_UPLOAD,
-            "Seed-List Upload",
-            "task that a principal peer performes to generate and upload a seed-list to a ftp account",
-            null,
-            new InstantBusyThread("Network.publishSeedList", 600000, 300000) {
-                @Override
-                public boolean jobImpl() throws Exception {
-                    net.publishSeedList();
-                    return true;
-                }
-            },
-            180000);
+                SwitchboardConstants.SEED_UPLOAD,
+                "Seed-List Upload",
+                "task that a principal peer performes to generate and upload a seed-list to a ftp account",
+                null,
+                new InstantBusyThread("Network.publishSeedList", 600000, 300000) {
+                    @Override
+                    public boolean jobImpl() throws Exception {
+                        net.publishSeedList();
+                        return true;
+                    }
+                },
+                180000);
 
         this.deployThread(
-            SwitchboardConstants.PEER_PING,
-            "YaCy Core",
-            "this is the p2p-control and peer-ping task",
-            null,
-            new InstantBusyThread("Network.peerPing", 30000, 30000) {
-                @Override
-                public boolean jobImpl() throws Exception {
-                    net.peerPing();
-                    return true;
-                }
-            },
-            10000);
+                SwitchboardConstants.PEER_PING,
+                "YaCy Core",
+                "this is the p2p-control and peer-ping task",
+                null,
+                new InstantBusyThread("Network.peerPing", 30000, 30000) {
+                    @Override
+                    public boolean jobImpl() throws Exception {
+                        net.peerPing();
+                        return true;
+                    }
+                },
+                10000);
         this.deployThread(
-            SwitchboardConstants.INDEX_DIST,
-            "DHT Distribution",
-            "selection, transfer and deletion of index entries that are not searched on your peer, but on others",
-            null,
-            new InstantBusyThread("Switchboard.dhtTransferJob", 10000, 1000) {
-                @Override
-                public boolean jobImpl() throws Exception {
-                    return Switchboard.this.dhtTransferJob();
-                }
-            },
-            60000,
-            Long.parseLong(this.getConfig(SwitchboardConstants.INDEX_DIST_IDLESLEEP, "5000")),
-            Long.parseLong(this.getConfig(SwitchboardConstants.INDEX_DIST_BUSYSLEEP, "0")),
-            Long.parseLong(this.getConfig(SwitchboardConstants.INDEX_DIST_MEMPREREQ, "1000000")),
-            Double.parseDouble(this.getConfig(SwitchboardConstants.INDEX_DIST_LOADPREREQ, "9.0")));
-
-        // content control: initialize list sync thread
-        this.deployThread(
-            "720_ccimport",
-            "Content Control Import",
-            "this is the content control import thread",
-            null,
-                InstantBusyThread.createFromRunnable(
-                        new SMWListSyncThread(this, sb.getConfig("contentcontrol.bookmarklist", "contentcontrol"),
-                                "Category:Content Source", "/?Url/?Filter/?Category/?Modification date",
-                                sb.getConfigBool("contentcontrol.smwimport.purgelistoninit", false)),
-                        3000, 3000),
-            2000);
-
-        this.deployThread(
-            "730_ccfilter",
-            "Content Control Filter",
-            "this is the content control filter update thread",
-            null,
-            InstantBusyThread.createFromRunnable(new ContentControlFilterUpdateThread(this), 3000, 3000),
-            2000);
+                SwitchboardConstants.INDEX_DIST,
+                "DHT Distribution",
+                "selection, transfer and deletion of index entries that are not searched on your peer, but on others",
+                null,
+                new InstantBusyThread("Switchboard.dhtTransferJob", 10000, 1000) {
+                    @Override
+                    public boolean jobImpl() throws Exception {
+                        return Switchboard.this.dhtTransferJob();
+                    }
+                },
+                60000,
+                Long.parseLong(this.getConfig(SwitchboardConstants.INDEX_DIST_IDLESLEEP, "5000")),
+                Long.parseLong(this.getConfig(SwitchboardConstants.INDEX_DIST_BUSYSLEEP, "0")),
+                Long.parseLong(this.getConfig(SwitchboardConstants.INDEX_DIST_MEMPREREQ, "1000000")),
+                Double.parseDouble(this.getConfig(SwitchboardConstants.INDEX_DIST_LOADPREREQ, "9.0")));
 
         // set network-specific performance attributes
         if ( this.firstInit ) {
@@ -1309,11 +1266,11 @@ public final class Switchboard extends serverSwitch {
         if(systemEnableSniExt == null) {
             /* Only apply custom configuration when the JVM system option jsse.enableSNIExtension is not defined */
             HTTPClient.ENABLE_SNI_EXTENSION
-                    .set(this.getConfigBool(SwitchboardConstants.HTTP_OUTGOING_GENERAL_TLS_SNI_EXTENSION_ENABLED,
-                            HTTPClient.ENABLE_SNI_EXTENSION_DEFAULT));
+            .set(this.getConfigBool(SwitchboardConstants.HTTP_OUTGOING_GENERAL_TLS_SNI_EXTENSION_ENABLED,
+                    HTTPClient.ENABLE_SNI_EXTENSION_DEFAULT));
 
             RemoteInstance.ENABLE_SNI_EXTENSION.set(this.getConfigBool(SwitchboardConstants.HTTP_OUTGOING_REMOTE_SOLR_TLS_SNI_EXTENSION_ENABLED,
-                            RemoteInstance.ENABLE_SNI_EXTENSION_DEFAULT));
+                    RemoteInstance.ENABLE_SNI_EXTENSION_DEFAULT));
         }
     }
 
@@ -1345,7 +1302,7 @@ public final class Switchboard extends serverSwitch {
     }
 
     @Override
-    public void setHttpServer(YaCyHttpServer server) {
+    public void setHttpServer(final YaCyHttpServer server) {
         super.setHttpServer(server);
 
         // finally start jobs which shall be started after start-up
@@ -1360,16 +1317,16 @@ public final class Switchboard extends serverSwitch {
 
     public int getIndexingProcessorsQueueSize() {
         return this.indexingDocumentProcessor.getQueueSize()
-            + this.indexingCondensementProcessor.getQueueSize()
-            + this.indexingAnalysisProcessor.getQueueSize()
-            + this.indexingStorageProcessor.getQueueSize();
+                + this.indexingCondensementProcessor.getQueueSize()
+                + this.indexingAnalysisProcessor.getQueueSize()
+                + this.indexingStorageProcessor.getQueueSize();
     }
 
     public void overwriteNetworkDefinition(final String sysinfo) throws FileNotFoundException, IOException {
 
         // load network configuration into settings
         String networkUnitDefinition =
-            this.getConfig("network.unit.definition", "defaults/yacy.network.freeworld.unit");
+                this.getConfig("network.unit.definition", "defaults/yacy.network.freeworld.unit");
         if (networkUnitDefinition.isEmpty()) networkUnitDefinition = "defaults/yacy.network.freeworld.unit"; // patch for a strange failure case where the path was overwritten by empty string
 
         // patch old values
@@ -1399,9 +1356,9 @@ public final class Switchboard extends serverSwitch {
         // or independently using a bootstrap URL
         Map<String, String> initProps;
         final Reader netDefReader =
-            this.getConfigFileFromWebOrLocally(networkUnitDefinition, this.getAppPath().getAbsolutePath(), new File(
-                this.workPath,
-                "network.definition.backup"));
+                this.getConfigFileFromWebOrLocally(networkUnitDefinition, this.getAppPath().getAbsolutePath(), new File(
+                        this.workPath,
+                        "network.definition.backup"));
         initProps = FileUtils.table(netDefReader);
         this.setConfig(initProps);
 
@@ -1426,10 +1383,10 @@ public final class Switchboard extends serverSwitch {
                 // get public key if it's in config
                 try {
                     final String publicKeyString =
-                        this.getConfig("network.unit.update.location" + i + ".key", null);
+                            this.getConfig("network.unit.update.location" + i + ".key", null);
                     if ( publicKeyString != null ) {
                         final byte[] publicKeyBytes =
-                            Base64Order.standardCoder.decode(publicKeyString.trim());
+                                Base64Order.standardCoder.decode(publicKeyString.trim());
                         publicKey = cryptoLib.getPublicKeyFromBytes(publicKeyBytes);
                     }
                 } catch (final InvalidKeySpecException e ) {
@@ -1464,7 +1421,7 @@ public final class Switchboard extends serverSwitch {
             setConfig(plasmaSwitchboardConstants.INDEX_DIST_ALLOW, true);
             setConfig(plasmaSwitchboardConstants.INDEX_RECEIVE_ALLOW, true);
         }
-        */
+         */
         // write the YaCy network identification inside the yacybot client user agent to distinguish networks
         ClientIdentification.generateYaCyBot(sysinfo);
     }
@@ -1517,11 +1474,11 @@ public final class Switchboard extends serverSwitch {
             this.setConfig("network.unit.definition", networkDefinition);
             this.overwriteNetworkDefinition(this.getSysinfo());
             final File indexPrimaryPath =
-                this.getDataPath(SwitchboardConstants.INDEX_PRIMARY_PATH, SwitchboardConstants.INDEX_PATH_DEFAULT);
+                    this.getDataPath(SwitchboardConstants.INDEX_PRIMARY_PATH, SwitchboardConstants.INDEX_PATH_DEFAULT);
             final int wordCacheMaxCount =
-                (int) this.getConfigLong(SwitchboardConstants.WORDCACHE_MAX_COUNT, 20000);
+                    (int) this.getConfigLong(SwitchboardConstants.WORDCACHE_MAX_COUNT, 20000);
             final long fileSizeMax =
-                (OS.isWindows) ? this.getConfigLong("filesize.max.win", Integer.MAX_VALUE) : this.getConfigLong("filesize.max.other", Integer.MAX_VALUE);
+                    (OS.isWindows) ? this.getConfigLong("filesize.max.win", Integer.MAX_VALUE) : this.getConfigLong("filesize.max.other", Integer.MAX_VALUE);
             final int redundancy = (int) this.getConfigLong("network.unit.dhtredundancy.senior", 1);
             final int partitionExponent = (int) this.getConfigLong("network.unit.dht.partitionExponent", 0);
             final String networkName = this.getConfig(SwitchboardConstants.NETWORK_NAME, "");
@@ -1539,11 +1496,11 @@ public final class Switchboard extends serverSwitch {
 
             // relocate
             this.peers.relocate(
-                this.networkRoot,
-                redundancy,
-                partitionExponent,
-                this.useTailCache,
-                this.exceed134217727);
+                    this.networkRoot,
+                    redundancy,
+                    partitionExponent,
+                    this.useTailCache,
+                    this.exceed134217727);
             final File segmentsPath = new File(new File(indexPrimaryPath, networkName), "SEGMENTS");
             final File archivePath = this.getDataPath(SwitchboardConstants.INDEX_ARCHIVE_PATH, SwitchboardConstants.INDEX_ARCHIVE_DEFAULT);
             this.index = new Segment(this.log, segmentsPath, archivePath, collectionConfiguration, webgraphConfiguration);
@@ -1559,62 +1516,62 @@ public final class Switchboard extends serverSwitch {
             final String solrurls = this.getConfig(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_URL, "http://127.0.0.1:8983/solr");
             final boolean usesolr = this.getConfigBool(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_ENABLED,
                     SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_ENABLED_DEFAULT) & solrurls.length() > 0;
-            final int solrtimeout = this.getConfigInt(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_TIMEOUT, 60000);
-            final boolean writeEnabled = this.getConfigBool(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_WRITEENABLED, true);
-            final boolean trustSelfSignedOnAuthenticatedServer = Switchboard.getSwitchboard().getConfigBool(
-                    SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_AUTHENTICATED_ALLOW_SELF_SIGNED,
-                    SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_AUTHENTICATED_ALLOW_SELF_SIGNED_DEFAULT);
+                    final int solrtimeout = this.getConfigInt(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_TIMEOUT, 60000);
+                    final boolean writeEnabled = this.getConfigBool(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_WRITEENABLED, true);
+                    final boolean trustSelfSignedOnAuthenticatedServer = Switchboard.getSwitchboard().getConfigBool(
+                            SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_AUTHENTICATED_ALLOW_SELF_SIGNED,
+                            SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_AUTHENTICATED_ALLOW_SELF_SIGNED_DEFAULT);
 
-            if (usesolr && solrurls != null && solrurls.length() > 0) {
-                try {
-                    final ArrayList<RemoteInstance> instances = RemoteInstance.getShardInstances(solrurls, null, null, solrtimeout, trustSelfSignedOnAuthenticatedServer);
-                    final String shardMethodName = this.getConfig(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_SHARDING, ShardSelection.Method.MODULO_HOST_MD5.name());
-                    final ShardSelection.Method shardMethod = ShardSelection.Method.valueOf(shardMethodName);
-                    this.index.fulltext().connectRemoteSolr(instances, shardMethod, writeEnabled);
-                } catch (final IOException e ) {
-                    ConcurrentLog.logException(e);
-                }
-            }
+                    if (usesolr && solrurls != null && solrurls.length() > 0) {
+                        try {
+                            final ArrayList<RemoteInstance> instances = RemoteInstance.getShardInstances(solrurls, null, null, solrtimeout, trustSelfSignedOnAuthenticatedServer);
+                            final String shardMethodName = this.getConfig(SwitchboardConstants.FEDERATED_SERVICE_SOLR_INDEXING_SHARDING, ShardSelection.Method.MODULO_HOST_MD5.name());
+                            final ShardSelection.Method shardMethod = ShardSelection.Method.valueOf(shardMethodName);
+                            this.index.fulltext().connectRemoteSolr(instances, shardMethod, writeEnabled);
+                        } catch (final IOException e ) {
+                            ConcurrentLog.logException(e);
+                        }
+                    }
 
-            // create a crawler
-            this.crawlQueues.relocate(this.queuesRoot); // cannot be closed because the busy threads are working with that object
-            this.crawler = new CrawlSwitchboard(this);
+                    // create a crawler
+                    this.crawlQueues.relocate(this.queuesRoot); // cannot be closed because the busy threads are working with that object
+                    this.crawler = new CrawlSwitchboard(this);
 
-            // init a DHT transmission dispatcher
-            this.dhtDispatcher = (this.peers.sizeConnected() == 0) ? null : new Dispatcher(this, true, 10000);
+                    // init a DHT transmission dispatcher
+                    this.dhtDispatcher = (this.peers.sizeConnected() == 0) ? null : new Dispatcher(this, true, 10000);
 
-            // create new web structure
-            this.webStructure = new WebStructureGraph(new File(this.queuesRoot, "webStructure.map"));
+                    // create new web structure
+                    this.webStructure = new WebStructureGraph(new File(this.queuesRoot, "webStructure.map"));
 
-            // load domainList
-            try {
-                this.domainList = null;
-                if ( !this.getConfig("network.unit.domainlist", "").equals("") ) {
-                    final Reader r = this.getConfigFileFromWebOrLocally(
-                            this.getConfig("network.unit.domainlist", ""),
-                            this.getAppPath().getAbsolutePath(),
-                            new File(this.networkRoot, "domainlist.txt"));
-                    this.domainList = new FilterEngine();
-                    final BufferedReader br = new BufferedReader(r);
-                    this.domainList.loadList(br, null);
-                    br.close();
-                }
-            } catch (final FileNotFoundException e ) {
-                this.log.severe("CONFIG: domainlist not found: " + e.getMessage());
-            } catch (final IOException e ) {
-                this.log.severe("CONFIG: error while retrieving domainlist: " + e.getMessage());
-            }
+                    // load domainList
+                    try {
+                        this.domainList = null;
+                        if ( !this.getConfig("network.unit.domainlist", "").equals("") ) {
+                            final Reader r = this.getConfigFileFromWebOrLocally(
+                                    this.getConfig("network.unit.domainlist", ""),
+                                    this.getAppPath().getAbsolutePath(),
+                                    new File(this.networkRoot, "domainlist.txt"));
+                            this.domainList = new FilterEngine();
+                            final BufferedReader br = new BufferedReader(r);
+                            this.domainList.loadList(br, null);
+                            br.close();
+                        }
+                    } catch (final FileNotFoundException e ) {
+                        this.log.severe("CONFIG: domainlist not found: " + e.getMessage());
+                    } catch (final IOException e ) {
+                        this.log.severe("CONFIG: error while retrieving domainlist: " + e.getMessage());
+                    }
 
-            this.crawlStacker =
-                new CrawlStacker(
-                    this.robots,
-                    this.crawlQueues,
-                    this.crawler,
-                    this.index,
-                    this.peers,
-                    "local.any".indexOf(this.getConfig(SwitchboardConstants.NETWORK_DOMAIN, "global")) >= 0,
-                    "global.any".indexOf(this.getConfig(SwitchboardConstants.NETWORK_DOMAIN, "global")) >= 0,
-                    this.domainList);
+                    this.crawlStacker =
+                            new CrawlStacker(
+                                    this.robots,
+                                    this.crawlQueues,
+                                    this.crawler,
+                                    this.index,
+                                    this.peers,
+                                    "local.any".indexOf(this.getConfig(SwitchboardConstants.NETWORK_DOMAIN, "global")) >= 0,
+                                    "global.any".indexOf(this.getConfig(SwitchboardConstants.NETWORK_DOMAIN, "global")) >= 0,
+                                    this.domainList);
 
         }
         Domains.setNoLocalCheck(this.isAllIPMode()); // possibly switch off localIP check
@@ -1623,7 +1580,7 @@ public final class Switchboard extends serverSwitch {
         this.continueCrawlJob(SwitchboardConstants.CRAWLJOB_LOCAL_CRAWL);
         this.continueCrawlJob(SwitchboardConstants.CRAWLJOB_REMOTE_TRIGGERED_CRAWL);
         this.log
-            .info("SWITCH NETWORK: FINISHED START UP, new network is now '" + networkDefinition + "'.");
+        .info("SWITCH NETWORK: FINISHED START UP, new network is now '" + networkDefinition + "'.");
 
         // set the network-specific remote crawl ppm
         this.setRemotecrawlPPM(Math.max(1, (int) this.getConfigLong("network.unit.remotecrawl.speed", 60)));
@@ -1757,12 +1714,12 @@ public final class Switchboard extends serverSwitch {
         final File messageDbFile = new File(this.workPath, "message.heap");
         this.messageDB = new MessageBoard(messageDbFile);
         this.log.config("Loaded Message Board DB from file "
-            + messageDbFile.getName()
-            + ", "
-            + this.messageDB.size()
-            + " entries"
-            + ", "
-            + ppRamString(messageDbFile.length() / 1024));
+                + messageDbFile.getName()
+                + ", "
+                + this.messageDB.size()
+                + " entries"
+                + ", "
+                + ppRamString(messageDbFile.length() / 1024));
     }
 
     public void initWiki() throws IOException {
@@ -1770,12 +1727,12 @@ public final class Switchboard extends serverSwitch {
         final File wikiDbFile = new File(this.workPath, "wiki.heap");
         this.wikiDB = new WikiBoard(wikiDbFile, new File(this.workPath, "wiki-bkp.heap"));
         this.log.config("Loaded Wiki Board DB from file "
-            + wikiDbFile.getName()
-            + ", "
-            + this.wikiDB.size()
-            + " entries"
-            + ", "
-            + ppRamString(wikiDbFile.length() / 1024));
+                + wikiDbFile.getName()
+                + ", "
+                + this.wikiDB.size()
+                + " entries"
+                + ", "
+                + ppRamString(wikiDbFile.length() / 1024));
     }
 
     public void initBlog() throws IOException {
@@ -1783,22 +1740,22 @@ public final class Switchboard extends serverSwitch {
         final File blogDbFile = new File(this.workPath, "blog.heap");
         this.blogDB = new BlogBoard(blogDbFile);
         this.log.config("Loaded Blog DB from file "
-            + blogDbFile.getName()
-            + ", "
-            + this.blogDB.size()
-            + " entries"
-            + ", "
-            + ppRamString(blogDbFile.length() / 1024));
+                + blogDbFile.getName()
+                + ", "
+                + this.blogDB.size()
+                + " entries"
+                + ", "
+                + ppRamString(blogDbFile.length() / 1024));
 
         final File blogCommentDbFile = new File(this.workPath, "blogComment.heap");
         this.blogCommentDB = new BlogBoardComments(blogCommentDbFile);
         this.log.config("Loaded Blog-Comment DB from file "
-            + blogCommentDbFile.getName()
-            + ", "
-            + this.blogCommentDB.size()
-            + " entries"
-            + ", "
-            + ppRamString(blogCommentDbFile.length() / 1024));
+                + blogCommentDbFile.getName()
+                + ", "
+                + this.blogCommentDB.size()
+                + " entries"
+                + ", "
+                + ppRamString(blogCommentDbFile.length() / 1024));
     }
 
     public void initBookmarks() throws IOException {
@@ -1809,13 +1766,13 @@ public final class Switchboard extends serverSwitch {
         tagsFile.delete();
         this.bookmarksDB = new BookmarksDB(bookmarksFile, datesFile);
         this.log.config("Loaded Bookmarks DB from files "
-            + bookmarksFile.getName()
-            + ", "
-            + tagsFile.getName());
+                + bookmarksFile.getName()
+                + ", "
+                + tagsFile.getName());
         this.log.config(this.bookmarksDB.tagsSize()
-            + " Tag, "
-            + this.bookmarksDB.bookmarksSize()
-            + " Bookmarks");
+                + " Tag, "
+                + this.bookmarksDB.bookmarksSize()
+                + " Bookmarks");
     }
 
     public static Switchboard getSwitchboard() {
@@ -1852,17 +1809,17 @@ public final class Switchboard extends serverSwitch {
         // we need to take care that search requests and remote indexing requests go only
         // to the peers in the same cluster, if we run a robinson cluster.
         return (this.peers != null && this.peers.sizeConnected() == 0)
-            || (!this.getConfigBool(SwitchboardConstants.INDEX_DIST_ALLOW, false) &&
-                !this.getConfigBool(SwitchboardConstants.INDEX_RECEIVE_ALLOW, false));
+                || (!this.getConfigBool(SwitchboardConstants.INDEX_DIST_ALLOW, false) &&
+                        !this.getConfigBool(SwitchboardConstants.INDEX_RECEIVE_ALLOW, false));
     }
 
     public boolean isPublicRobinson() {
         // robinson peers may be member of robinson clusters, which can be public or private
         // this does not check the robinson attribute, only the specific subtype of the cluster
         final String clustermode =
-            this.getConfig(SwitchboardConstants.CLUSTER_MODE, SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER);
+                this.getConfig(SwitchboardConstants.CLUSTER_MODE, SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER);
         return (clustermode.equals(SwitchboardConstants.CLUSTER_MODE_PUBLIC_CLUSTER))
-            || (clustermode.equals(SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER));
+                || (clustermode.equals(SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER));
     }
 
     public boolean isInMyCluster(final String peer) {
@@ -1877,7 +1834,7 @@ public final class Switchboard extends serverSwitch {
             return false;
         }
         final String clustermode =
-            this.getConfig(SwitchboardConstants.CLUSTER_MODE, SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER);
+                this.getConfig(SwitchboardConstants.CLUSTER_MODE, SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER);
         if ( clustermode.equals(SwitchboardConstants.CLUSTER_MODE_PUBLIC_CLUSTER) ) {
             // check if we got the request from a peer in the public cluster
             return this.clusterhashes.contains(ASCII.getBytes(peer));
@@ -1895,7 +1852,7 @@ public final class Switchboard extends serverSwitch {
             return false;
         }
         final String clustermode =
-            this.getConfig(SwitchboardConstants.CLUSTER_MODE, SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER);
+                this.getConfig(SwitchboardConstants.CLUSTER_MODE, SwitchboardConstants.CLUSTER_MODE_PUBLIC_PEER);
         if ( clustermode.equals(SwitchboardConstants.CLUSTER_MODE_PUBLIC_CLUSTER) ) {
             // check if we got the request from a peer in the public cluster
             return this.clusterhashes.contains(ASCII.getBytes(seed.hash));
@@ -1945,8 +1902,8 @@ public final class Switchboard extends serverSwitch {
 
     public RankingProfile getRanking() {
         return (this.getConfig(SwitchboardConstants.SEARCH_RANKING_RWI_PROFILE, "").isEmpty())
-            ? new RankingProfile(Classification.ContentDomain.TEXT)
-            : new RankingProfile("", crypt.simpleDecode(this.getConfig(SwitchboardConstants.SEARCH_RANKING_RWI_PROFILE, "")));
+                ? new RankingProfile(Classification.ContentDomain.TEXT)
+                        : new RankingProfile("", crypt.simpleDecode(this.getConfig(SwitchboardConstants.SEARCH_RANKING_RWI_PROFILE, "")));
     }
 
     /**
@@ -1958,18 +1915,18 @@ public final class Switchboard extends serverSwitch {
      */
     public String onlineCaution() {
         if ( System.currentTimeMillis() - this.proxyLastAccess < Integer.parseInt(this.getConfig(
-            SwitchboardConstants.PROXY_ONLINE_CAUTION_DELAY,
-            "100")) ) {
+                SwitchboardConstants.PROXY_ONLINE_CAUTION_DELAY,
+                "100")) ) {
             return "proxy";
         }
         if ( System.currentTimeMillis() - this.localSearchLastAccess < Integer.parseInt(this.getConfig(
-            SwitchboardConstants.LOCALSEACH_ONLINE_CAUTION_DELAY,
-            "1000")) ) {
+                SwitchboardConstants.LOCALSEACH_ONLINE_CAUTION_DELAY,
+                "1000")) ) {
             return "localsearch";
         }
         if ( System.currentTimeMillis() - this.remoteSearchLastAccess < Integer.parseInt(this.getConfig(
-            SwitchboardConstants.REMOTESEARCH_ONLINE_CAUTION_DELAY,
-            "500")) ) {
+                SwitchboardConstants.REMOTESEARCH_ONLINE_CAUTION_DELAY,
+                "500")) ) {
             return "remotesearch";
         }
         return null;
@@ -2020,13 +1977,13 @@ public final class Switchboard extends serverSwitch {
      */
     public boolean cleanProfiles() throws InterruptedException {
         if (this.getIndexingProcessorsQueueSize() > 0 ||
-            this.crawlQueues.activeWorkerEntries().size() > 0 ||
-            this.crawlQueues.coreCrawlJobSize() > 0 ||
-            this.crawlQueues.limitCrawlJobSize() > 0 ||
-            this.crawlQueues.remoteTriggeredCrawlJobSize() > 0 ||
-            this.crawlQueues.noloadCrawlJobSize() > 0 ||
-            (this.crawlStacker != null && !this.crawlStacker.isEmpty()) ||
-            !this.crawlQueues.noticeURL.isEmpty()) {
+                this.crawlQueues.activeWorkerEntries().size() > 0 ||
+                this.crawlQueues.coreCrawlJobSize() > 0 ||
+                this.crawlQueues.limitCrawlJobSize() > 0 ||
+                this.crawlQueues.remoteTriggeredCrawlJobSize() > 0 ||
+                this.crawlQueues.noloadCrawlJobSize() > 0 ||
+                (this.crawlStacker != null && !this.crawlStacker.isEmpty()) ||
+                !this.crawlQueues.noticeURL.isEmpty()) {
             return false;
         }
         return this.crawler.clear();
@@ -2054,7 +2011,7 @@ public final class Switchboard extends serverSwitch {
         if ( this.dhtDispatcher != null ) {
             this.dhtDispatcher.close();
         }
-//        de.anomic.http.client.Client.closeAllConnections();
+        //        de.anomic.http.client.Client.closeAllConnections();
         this.wikiDB.close();
         this.blogDB.close();
         this.blogCommentDB.close();
@@ -2153,9 +2110,9 @@ public final class Switchboard extends serverSwitch {
         }
 
         this.indexingDocumentProcessor.enQueue(new IndexingQueueEntry(
-            response,
-            null,
-            null));
+                response,
+                null,
+                null));
         return null;
     }
 
@@ -2209,7 +2166,24 @@ public final class Switchboard extends serverSwitch {
                 this.log.warn("IO Error processing warc file " + infile);
             }
             return moved;
-        } else if (s.endsWith(".jsonlist") || s.endsWith(".flatjson")) {
+        } else if (s.endsWith(".zim")) {
+            try {
+                final ZimImporter wri = new ZimImporter(infile.getAbsolutePath());
+                wri.start();
+                try {
+                    wri.join();
+                } catch (final InterruptedException ex) {
+                    return moved;
+                }
+                moved = infile.renameTo(outfile);
+            } catch (final IOException ex) {
+                this.log.warn("IO Error processing zim file " + infile);
+            }
+            return moved;
+        } else if (
+                s.endsWith(".jsonl") || s.endsWith(".jsonl.gz") ||
+                s.endsWith(".jsonlist") || s.endsWith(".jsonlist.gz") ||
+                s.endsWith(".flatjson") || s.endsWith(".flatjson.gz")) {
             return this.processSurrogateJson(infile, outfile);
         }
         InputStream is = null;
@@ -2228,18 +2202,16 @@ public final class Switchboard extends serverSwitch {
                         final String gzname = outfile.getName() + ".gz";
                         final File gzfile = new File(outfile.getParentFile(), gzname);
                         try (
-                            /* Resources automatically closed by this try-with-resources statement */
-                            final FileOutputStream fileOutStream = new FileOutputStream(gzfile);
-                            final OutputStream os = new BufferedOutputStream(new GZIPOutputStream(fileOutStream, 65536){{this.def.setLevel(Deflater.BEST_COMPRESSION);}});
-                            final FileInputStream fileInStream = new FileInputStream(outfile);
-                            final BufferedInputStream bis = new BufferedInputStream(fileInStream);
-                        ) {
+                                /* Resources automatically closed by this try-with-resources statement */
+                                final FileOutputStream fileOutStream = new FileOutputStream(gzfile);
+                                final OutputStream os = new BufferedOutputStream(new GZIPOutputStream(fileOutStream, 65536){{this.def.setLevel(Deflater.BEST_COMPRESSION);}});
+                                final FileInputStream fileInStream = new FileInputStream(outfile);
+                                final BufferedInputStream bis = new BufferedInputStream(fileInStream);
+                                ) {
                             FileUtils.copy(bis, os);
                             if ( gzfile.exists() ) {
                                 FileUtils.deletedelete(outfile);
                             }
-                        } catch (final FileNotFoundException e ) {
-                            ConcurrentLog.logException(e);
                         } catch (final IOException e ) {
                             /* Catch but log any IO exception that can occur on copy, automatic closing or streams creation */
                             ConcurrentLog.logException(e);
@@ -2255,176 +2227,18 @@ public final class Switchboard extends serverSwitch {
         return moved;
     }
 
-    private boolean processSurrogateJson(File infile, File outfile) {
+    private boolean processSurrogateJson(final File infile, final File outfile) {
         // parse a file that can be generated with yacy_grid_parser
         // see https://github.com/yacy/yacy_grid_parser/blob/master/README.md
         this.log.info("processing json surrogate " + infile);
-        final long starttime = System.currentTimeMillis();
-
-        boolean moved = false;
-        FileInputStream fis = null;
-        BufferedReader br = null;
-
-        // start indexer threads which mostly care about tokenization and facet + synonym enrichment
-        final int concurrency = Runtime.getRuntime().availableProcessors();
-        final BlockingQueue<SolrInputDocument> sidQueue = new ArrayBlockingQueue<>(concurrency * 2);
-        final Thread[] indexer = new Thread[concurrency];
-        for (int t = 0; t < indexer.length; t++) {
-            indexer[t] = new Thread("Switchboard.processSurrogateJson-" + t) {
-                @Override
-                public void run() {
-                    final VocabularyScraper scraper = new VocabularyScraper();
-                    SolrInputDocument sid;
-                    try {
-                        while ((sid = sidQueue.take()) != SurrogateReader.POISON_DOCUMENT ) {
-                            // enrich the surrogate
-                            final String id = (String) sid.getFieldValue(CollectionSchema.id.getSolrFieldName());
-                            final String text = (String) sid.getFieldValue(CollectionSchema.text_t.getSolrFieldName());
-                            DigestURL rootURL;
-                            if (text != null && text.length() > 0 && id != null ) try {
-                                if (SynonymLibrary.size() > 0 || !LibraryProvider.autotagging.isEmpty()) {
-                                    rootURL = new DigestURL((String) sid.getFieldValue(CollectionSchema.sku.getSolrFieldName()), ASCII.getBytes(id));
-                                    // run the tokenizer on the text to get vocabularies and synonyms
-                                    final Tokenizer tokenizer = new Tokenizer(rootURL, text, LibraryProvider.dymLib, true, scraper);
-                                    final Map<String, Set<String>> facets = Document.computeGenericFacets(tokenizer.tags());
-                                    // overwrite the given vocabularies and synonyms with new computed ones
-                                    Switchboard.this.index.fulltext().getDefaultConfiguration().enrich(sid, tokenizer.synonyms(), facets);
-                                }
-                                Switchboard.this.index.putDocument(sid);
-                            } catch (final MalformedURLException e) {}
-                        }
-                    } catch (final InterruptedException e) {
-                    }
-                }
-            };
-            indexer[t].start();
-        }
-
         try {
-            fis = new FileInputStream(infile);
-            final InputStream is = new BufferedInputStream(fis);
-            br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            String line;
-            while ((line = br.readLine()) != null) {
-                final JSONTokener jt = new JSONTokener(line);
-                final JSONObject json = new JSONObject(jt);
-                if ((json.opt("index") != null && json.length() == 1) || json.length() == 0) continue;
-                final SolrInputDocument surrogate = new SolrInputDocument();
-                for (final String key: json.keySet()) {
-                    final Object o = json.opt(key);
-                    if (o == null) continue;
-                    if (o instanceof JSONArray) {
-                        // transform this into a list
-                        final JSONArray a = (JSONArray) o;
-                        // patch altered yacy grid schema (yacy grid does not split url lists into protocol and urlstub)
-                        if (key.equals("inboundlinks_sxt")) {
-                            // compute inboundlinks_urlstub_sxt and inboundlinks_protocol_sxt
-                            final List<Object> urlstub = new ArrayList<>();
-                            final List<Object> protocol = new ArrayList<>();
-                            for (int i = 0; i < a.length(); i++) {
-                                final AnchorURL b = new AnchorURL((String) a.get(i));
-                                urlstub.add(b.urlstub(true, true));
-                                protocol.add(b.getProtocol());
-                            }
-                            CollectionSchema.inboundlinks_urlstub_sxt.add(surrogate, urlstub);
-                            CollectionSchema.inboundlinks_protocol_sxt.add(surrogate, protocol);
-                        } else if (key.equals("outboundlinks_sxt")) {
-                            // compute outboundlinks_urlstub_sxt and outboundlinks_protocol_sxt
-                            final List<Object> urlstub = new ArrayList<>();
-                            final List<Object> protocol = new ArrayList<>();
-                            for (int i = 0; i < a.length(); i++) {
-                                final AnchorURL b = new AnchorURL((String) a.get(i));
-                                urlstub.add(b.urlstub(true, true));
-                                protocol.add(b.getProtocol());
-                            }
-                            CollectionSchema.outboundlinks_urlstub_sxt.add(surrogate, urlstub);
-                            CollectionSchema.outboundlinks_protocol_sxt.add(surrogate, protocol);
-                        } else if (key.equals("images_sxt")) {
-                            // compute images_urlstub_sxt and images_protocol_sxt
-                            final List<Object> urlstub = new ArrayList<>();
-                            final List<Object> protocol = new ArrayList<>();
-                            for (int i = 0; i < a.length(); i++) {
-                                final AnchorURL b = new AnchorURL((String) a.get(i));
-                                urlstub.add(b.urlstub(true, true));
-                                protocol.add(b.getProtocol());
-                            }
-                            CollectionSchema.images_urlstub_sxt.add(surrogate, urlstub);
-                            CollectionSchema.images_protocol_sxt.add(surrogate, protocol);
-                        } else {
-                            final List<Object> list = new ArrayList<>();
-                            for (int i = 0; i < a.length(); i++) list.add(a.get(i));
-                            final CollectionSchema schema = CollectionSchema.valueOf(key);
-                            schema.add(surrogate, list);
-                        }
-                    } else {
-                        CollectionSchema ctype = null;
-                        try {ctype = CollectionSchema.valueOf(key);} catch (final IllegalArgumentException e) {}
-                        if (key.equals("url_s") || key.equals("sku")) {
-                            ctype = CollectionSchema.sku;
-                            // patch yacy grid altered schema (yacy grid does not have IDs any more, but they can be re-computed here)
-                            final DigestURL durl = new DigestURL(o.toString());
-                            final String id = ASCII.String(durl.hash());
-                            surrogate.setField(CollectionSchema.sku.getSolrFieldName(), durl.toNormalform(true));
-                            surrogate.setField(CollectionSchema.id.getSolrFieldName(), id);
-                            surrogate.setField(CollectionSchema.host_id_s.getSolrFieldName(), id.substring(6));
-                        } else if (key.equals("referrer_url_s")) {
-                            final DigestURL durl = new DigestURL(o.toString());
-                            final String id = ASCII.String(durl.hash());
-                            surrogate.setField(CollectionSchema.referrer_id_s.getSolrFieldName(), id);
-                        } else if (ctype != null && ctype.getType() == SolrType.date) {
-                            // patch date into something that Solr can understand
-                            final String d = o.toString(); // i.e. Wed Apr 01 02:00:00 CEST 2020
-                            final Date dd = d == null || d.length() == 0 ? null : AbstractFormatter.parseAny(d);
-                            if (dd != null) surrogate.setField(ctype.getSolrFieldName(), ISO8601Formatter.FORMATTER.format(dd)); // solr dateTime is ISO8601 format
-                        } else {
-                            surrogate.setField(key, o.toString());
-                        }
-                    }
-                }
-
-                try {
-                    sidQueue.put(surrogate);
-                } catch (final InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            br.close();
-            br = null;
-            fis = null;
-
-            // finish indexing threads by giving them poison
-            for (int t = 0; t < indexer.length; t++) {
-                try {sidQueue.put(SurrogateReader.POISON_DOCUMENT);} catch (final InterruptedException e) {}
-            }
-            // wait until indexer threads are finished
-            for (int t = 0; t < indexer.length; t++) {
-                try {indexer[t].join(10000);} catch (final InterruptedException e) {}
-            }
-
-            moved = infile.renameTo(outfile);
-        } catch (IOException | JSONException  ex) {
-            this.log.warn("IO Error processing flatjson file " + infile);
-        } finally {
-            /* Properly release file system resources even in failure cases */
-            if(br != null) {
-                /* buffered reader was successfully created : close it and its underlying streams */
-                try {
-                    br.close();
-                } catch (final IOException e) {
-                    this.log.warn("Could not close reader on file " + infile);
-                }
-            } else if(fis != null) {
-                /* no buffered reader : maybe a case of exhausted memory. Anyway file input stream has to be closed. */
-                try {
-                    fis.close();
-                } catch (final IOException e) {
-                    this.log.warn("Could not close input stream on file " + infile);
-                }
-            }
+            final JsonListImporter importer = new JsonListImporter(infile, false, false);
+            importer.run();
+        } catch (final IOException e) {
+            this.log.warn(e);
         }
 
-        this.log.info("finished processing json surrogate: " + ((System.currentTimeMillis() - starttime) / 1000) + " seconds");
-
+        final boolean moved = infile.renameTo(outfile);
         return moved;
     }
 
@@ -2483,18 +2297,18 @@ public final class Switchboard extends serverSwitch {
                             final DCEntry entry = (DCEntry)surrogateObj;
                             final Document document = entry.document();
                             final Request request =
-                                new Request(
-                                    ASCII.getBytes(Switchboard.this.peers.mySeed().hash),
-                                    entry.getIdentifier(true),
-                                    null,
-                                    "",
-                                    entry.getDate(),
-                                    Switchboard.this.crawler.defaultSurrogateProfile.handle(),
-                                    0,
-                                    Switchboard.this.crawler.defaultSurrogateProfile.timezoneOffset());
+                                    new Request(
+                                            ASCII.getBytes(Switchboard.this.peers.mySeed().hash),
+                                            entry.getIdentifier(true),
+                                            null,
+                                            "",
+                                            entry.getDate(),
+                                            Switchboard.this.crawler.defaultSurrogateProfile.handle(),
+                                            0,
+                                            Switchboard.this.crawler.defaultSurrogateProfile.timezoneOffset());
                             final Response response = new Response(request, null, null, Switchboard.this.crawler.defaultSurrogateProfile, false, null);
                             final IndexingQueueEntry queueEntry =
-                                new IndexingQueueEntry(response, new Document[] {document}, null);
+                                    new IndexingQueueEntry(response, new Document[] {document}, null);
 
                             Switchboard.this.indexingCondensementProcessor.enQueue(queueEntry);
                         }
@@ -2521,12 +2335,15 @@ public final class Switchboard extends serverSwitch {
         int count = 0;
         for ( final String s : surrogatelist ) {
             if ( s.endsWith(".xml")
-                || s.endsWith(".xml.gz")
-                || s.endsWith(".xml.zip")
-                || s.endsWith(".warc")
-                || s.endsWith(".warc.gz")
-                || s.endsWith(".jsonlist")
-                || s.endsWith(".flatjson") ) {
+                    || s.endsWith(".xml.gz")
+                    || s.endsWith(".xml.zip")
+                    || s.endsWith(".warc")
+                    || s.endsWith(".warc.gz")
+                    || s.endsWith(".jsonl")
+                    || s.endsWith(".jsonl.gz")
+                    || s.endsWith(".jsonlist")
+                    || s.endsWith(".jsonlist.gz")
+                    || s.endsWith(".flatjson") ) {
                 count++;
             }
             if ( count >= 100 ) {
@@ -2546,8 +2363,8 @@ public final class Switchboard extends serverSwitch {
         if ( cautionCause != null ) {
             if ( this.log.isFine() ) {
                 this.log.fine("deQueue: online caution for "
-                    + cautionCause
-                    + ", omitting resource stack processing");
+                        + cautionCause
+                        + ", omitting resource stack processing");
             }
             return false;
         }
@@ -2563,12 +2380,15 @@ public final class Switchboard extends serverSwitch {
                     this.checkInterruption();
 
                     if ( surrogate.endsWith(".xml")
-                        || surrogate.endsWith(".xml.gz")
-                        || surrogate.endsWith(".xml.zip")
-                        || surrogate.endsWith(".warc")
-                        || surrogate.endsWith(".warc.gz")
-                        || surrogate.endsWith(".jsonlist")
-                        || surrogate.endsWith(".flatjson") ) {
+                            || surrogate.endsWith(".xml.gz")
+                            || surrogate.endsWith(".xml.zip")
+                            || surrogate.endsWith(".zim")
+                            || surrogate.endsWith(".warc")
+                            || surrogate.endsWith(".warc.gz")
+                            || surrogate.endsWith(".jsonlist")
+                            || surrogate.endsWith(".jsonlist.gz")
+                            || surrogate.endsWith(".flatjson")
+                            || surrogate.endsWith(".flatjson.gz") ) {
                         // read the surrogate file and store entry in index
                         if ( this.processSurrogate(surrogate) ) {
                             return true;
@@ -2789,8 +2609,8 @@ public final class Switchboard extends serverSwitch {
             if (this.crawlQueues.delegatedURL != null && (this.crawlQueues.delegatedURL.size() > 1000) ) {
                 if ( this.log.isFine() ) {
                     this.log.fine("Cleaning Delegated-URLs report stack, "
-                        + this.crawlQueues.delegatedURL.size()
-                        + " entries on stack");
+                            + this.crawlQueues.delegatedURL.size()
+                            + " entries on stack");
                 }
                 this.crawlQueues.delegatedURL.clear();
             }
@@ -2800,8 +2620,8 @@ public final class Switchboard extends serverSwitch {
             if ( (this.crawlQueues.errorURL.stackSize() > 1000) ) {
                 if ( this.log.isFine() ) {
                     this.log.fine("Cleaning Error-URLs report stack, "
-                        + this.crawlQueues.errorURL.stackSize()
-                        + " entries on stack");
+                            + this.crawlQueues.errorURL.stackSize()
+                            + " entries on stack");
                 }
                 this.crawlQueues.errorURL.clearStack();
             }
@@ -2812,9 +2632,9 @@ public final class Switchboard extends serverSwitch {
                 if ( ResultURLs.getStackSize(origin) > 1000 ) {
                     if ( this.log.isFine() ) {
                         this.log.fine("Cleaning Loaded-URLs report stack, "
-                            + ResultURLs.getStackSize(origin)
-                            + " entries on stack "
-                            + origin.getCode());
+                                + ResultURLs.getStackSize(origin)
+                                + " entries on stack "
+                                + origin.getCode());
                     }
                     ResultURLs.clearStack(origin);
                 }
@@ -2825,8 +2645,8 @@ public final class Switchboard extends serverSwitch {
             try {
                 if ( this.log.isFine() ) {
                     this.log.fine("Cleaning Incoming News, "
-                        + this.peers.newsPool.size(NewsPool.INCOMING_DB)
-                        + " entries on stack");
+                            + this.peers.newsPool.size(NewsPool.INCOMING_DB)
+                            + " entries on stack");
                 }
                 this.peers.newsPool.automaticProcess(this.peers);
             } catch (final Exception e ) {
@@ -2842,7 +2662,7 @@ public final class Switchboard extends serverSwitch {
             // clean up seed-dbs
             if ( this.getConfigBool("routing.deleteOldSeeds.permission", true) ) {
                 final long deleteOldSeedsTime =
-                    this.getConfigLong("routing.deleteOldSeeds.time", 7) * 24 * 3600000;
+                        this.getConfigLong("routing.deleteOldSeeds.time", 7) * 24 * 3600000;
                 Iterator<Seed> e = this.peers.seedsSortedDisconnected(true, Seed.LASTSEEN);
                 Seed seed = null;
                 final List<String> deleteQueue = new ArrayList<>();
@@ -2890,10 +2710,10 @@ public final class Switchboard extends serverSwitch {
                 final boolean devenvironment = new File(this.getAppPath(), ".git").exists();
                 if ( devenvironment ) {
                     this.log
-                        .info("AUTO-UPDATE: omitting update because this is a development environment");
+                    .info("AUTO-UPDATE: omitting update because this is a development environment");
                 } else if ( (downloaded == null) || (!downloaded.exists()) || (downloaded.length() == 0) ) {
                     this.log
-                        .info("AUTO-UPDATE: omitting update because download failed (file cannot be found, is too small or signature is bad)");
+                    .info("AUTO-UPDATE: omitting update because download failed (file cannot be found, is too small or signature is bad)");
                 } else {
                     if(yacyRelease.deployRelease(downloaded)) {
                         this.terminate(10, "auto-update to install " + downloaded.getName());
@@ -2929,9 +2749,9 @@ public final class Switchboard extends serverSwitch {
                     final Properties news = new Properties();
                     news.put("homepage", profile.get("homepage"));
                     this.peers.newsPool.publishMyNews(
-                        this.peers.mySeed(),
-                        NewsPool.CATEGORY_PROFILE_BROADCAST,
-                        news);
+                            this.peers.mySeed(),
+                            NewsPool.CATEGORY_PROFILE_BROADCAST,
+                            news);
                 }
             }
 
@@ -3021,7 +2841,7 @@ public final class Switchboard extends serverSwitch {
                     fulltext.optimize(opts);
                     this.optimizeLastRun = System.currentTimeMillis();
                 }
-                */
+                 */
             }
 
             // write statistics
@@ -3062,7 +2882,7 @@ public final class Switchboard extends serverSwitch {
      *
      * @param jobType
      */
-    public void pauseCrawlJob(final String jobType, String cause) {
+    public void pauseCrawlJob(final String jobType, final String cause) {
         final Object[] status = this.crawlJobsStatus.get(jobType);
         synchronized ( status[SwitchboardConstants.CRAWLJOB_SYNC] ) {
             status[SwitchboardConstants.CRAWLJOB_STATUS] = Boolean.TRUE;
@@ -3107,8 +2927,6 @@ public final class Switchboard extends serverSwitch {
         Document[] documents = null;
         try {
             documents = this.parseDocument(in.queueEntry);
-        } catch (final InterruptedException e ) {
-            documents = null;
         } catch (final Exception e ) {
             documents = null;
         }
@@ -3125,13 +2943,13 @@ public final class Switchboard extends serverSwitch {
 
         if ( this.log.isFine() ) {
             this.log.fine(
-                "processResourceStack processCase=" + processCase
-                + ", depth=" + response.depth()
-                + ", maxDepth=" + ((response.profile() == null) ? "null" : Integer.toString(response.profile().depth()))
-                + ", must-match=" + ((response.profile() == null) ? "null" : response.profile().formattedUrlMustMatchPattern())
-                + ", must-not-match=" + ((response.profile() == null) ? "null" : response.profile().urlMustNotMatchPattern().toString())
-                + ", initiatorHash=" + ((response.initiator() == null) ? "null" : ASCII.String(response.initiator()))
-                + ", url=" + response.url()); // DEBUG
+                    "processResourceStack processCase=" + processCase
+                    + ", depth=" + response.depth()
+                    + ", maxDepth=" + ((response.profile() == null) ? "null" : Integer.toString(response.profile().depth()))
+                    + ", must-match=" + ((response.profile() == null) ? "null" : response.profile().formattedUrlMustMatchPattern())
+                    + ", must-not-match=" + ((response.profile() == null) ? "null" : response.profile().urlMustNotMatchPattern().toString())
+                    + ", initiatorHash=" + ((response.initiator() == null) ? "null" : ASCII.String(response.initiator()))
+                    + ", url=" + response.url()); // DEBUG
         }
 
         // PARSE CONTENT
@@ -3155,13 +2973,14 @@ public final class Switchboard extends serverSwitch {
                 if(response.profile().isIndexNonParseableUrls()) {
                     /* Apply the generic parser add the URL as a simple link (no content metadata) to the index */
                     documents = TextParser.genericParseSource(new AnchorURL(response.url()),
-                        response.getMimeType(),
-                        response.getCharacterEncoding(),
-                        response.profile().ignoreDivClassName(),
-                        response.profile().scraper(),
-                        response.profile().timezoneOffset(),
-                        response.depth(),
-                        response.getContent());
+                            response.getMimeType(),
+                            response.getCharacterEncoding(),
+                            response.profile().defaultValency(),
+                            response.profile().valencySwitchTagNames(),
+                            response.profile().scraper(),
+                            response.profile().timezoneOffset(),
+                            response.depth(),
+                            response.getContent());
                 } else {
                     this.log.warn("Resource '" + response.url().toNormalform(true) + "' is not supported. " + supportError);
                     // create a new errorURL DB entry
@@ -3175,7 +2994,8 @@ public final class Switchboard extends serverSwitch {
                                 new AnchorURL(response.url()),
                                 response.getMimeType(),
                                 response.getCharacterEncoding(),
-                                response.profile().ignoreDivClassName(),
+                                response.profile().defaultValency(),
+                                response.profile().valencySwitchTagNames(),
                                 response.profile().scraper(),
                                 response.profile().timezoneOffset(),
                                 response.depth(),
@@ -3217,19 +3037,19 @@ public final class Switchboard extends serverSwitch {
 
         // collect anchors within remaining documents
         if ((processCase == EventOrigin.PROXY_LOAD || processCase == EventOrigin.LOCAL_CRAWLING) &&
-            (
-                response.profile() == null ||
-                response.depth() < response.profile().depth() ||
-                response.profile().crawlerNoDepthLimitMatchPattern().matcher(response.url().toNormalform(true)).matches()
-            )
-           ) {
+                (
+                        response.profile() == null ||
+                        response.depth() < response.profile().depth() ||
+                        response.profile().crawlerNoDepthLimitMatchPattern().matcher(response.url().toNormalform(true)).matches()
+                        )
+                ) {
 
             final Pattern crawlerOriginUrlMustMatch = response.profile().getCrawlerOriginUrlMustMatchPattern();
             final Pattern crawlerOriginUrlMustNotMatch = response.profile().getCrawlerOriginUrlMustNotMatchPattern();
             if (!(crawlerOriginUrlMustMatch == CrawlProfile.MATCH_ALL_PATTERN
                     || crawlerOriginUrlMustMatch.matcher(response.url().toNormalform(true)).matches())
                     || (crawlerOriginUrlMustNotMatch != CrawlProfile.MATCH_NEVER_PATTERN
-                            && crawlerOriginUrlMustNotMatch.matcher(response.url().toNormalform(true)).matches())) {
+                    && crawlerOriginUrlMustNotMatch.matcher(response.url().toNormalform(true)).matches())) {
                 if (this.log.isInfo()) {
                     this.log.info("CRAWL: Ignored links from document at " + response.url().toNormalform(true)
                             + " : prevented by regular expression on URL origin of links, "
@@ -3287,9 +3107,9 @@ public final class Switchboard extends serverSwitch {
                     nextUrl = nextEntry.getKey();
                     String u = nextUrl.toNormalform(true, true);
                     if ( !(u.startsWith("http://")
-                        || u.startsWith("https://")
-                        || u.startsWith("ftp://")
-                        || u.startsWith("smb://") || u.startsWith("file://")) ) {
+                            || u.startsWith("https://")
+                            || u.startsWith("ftp://")
+                            || u.startsWith("smb://") || u.startsWith("file://")) ) {
                         continue;
                     }
 
@@ -3306,14 +3126,14 @@ public final class Switchboard extends serverSwitch {
                     final int nextdepth = nextEntry.getValue() != null && nextEntry.getValue().equals(Document.CANONICAL_MARKER) ? response.depth() : response.depth() + 1; // canonical documents are on the same depth
                     try {
                         this.crawlStacker.enqueueEntry(new Request(
-                            response.initiator(),
-                            new DigestURL(u),
-                            response.url().hash(),
-                            nextEntry.getValue(),
-                            new Date(),
-                            response.profile().handle(),
-                            nextdepth,
-                            response.profile().timezoneOffset()));
+                                response.initiator(),
+                                new DigestURL(u),
+                                response.url().hash(),
+                                nextEntry.getValue(),
+                                new Date(),
+                                response.profile().handle(),
+                                nextdepth,
+                                response.profile().timezoneOffset()));
                     } catch (final MalformedURLException e ) {
                         ConcurrentLog.logException(e);
                     }
@@ -3321,13 +3141,13 @@ public final class Switchboard extends serverSwitch {
                 final long stackEndTime = System.currentTimeMillis();
                 if ( this.log.isInfo() ) {
                     this.log.info("CRAWL: ADDED "
-                        + hl.size()
-                        + " LINKS FROM "
-                        + response.url().toNormalform(true)
-                        + ", STACKING TIME = "
-                        + (stackEndTime - stackStartTime)
-                        + ", PARSING TIME = "
-                        + (parsingEndTime - parsingStartTime));
+                            + hl.size()
+                            + " LINKS FROM "
+                            + response.url().toNormalform(true)
+                            + ", STACKING TIME = "
+                            + (stackEndTime - stackStartTime)
+                            + ", PARSING TIME = "
+                            + (parsingEndTime - parsingStartTime));
                 }
             }
         }
@@ -3362,28 +3182,73 @@ public final class Switchboard extends serverSwitch {
                 return new IndexingQueueEntry(in.queueEntry, in.documents, null);
             }
         }
-        if (!(profile.indexUrlMustMatchPattern() == CrawlProfile.MATCH_ALL_PATTERN || profile.indexUrlMustMatchPattern().matcher(urls).matches()) ||
-             (profile.indexUrlMustNotMatchPattern() != CrawlProfile.MATCH_NEVER_PATTERN && profile.indexUrlMustNotMatchPattern().matcher(urls).matches())) {
-            if (this.log.isInfo()) this.log.info("Not Condensed Resource '" + urls + "': indexing prevented by regular expression on url; indexUrlMustMatchPattern = " + profile.indexUrlMustMatchPattern().pattern() + ", indexUrlMustNotMatchPattern = " + profile.indexUrlMustNotMatchPattern().pattern());
+
+        // check mustmatch pattern
+        final Pattern mustmatchurl = profile.indexUrlMustMatchPattern();
+        if (mustmatchurl != CrawlProfile.MATCH_ALL_PATTERN && !mustmatchurl.matcher(urls).matches()) {
+            final String info = "Not Condensed Resource '" + urls + "': indexing prevented by regular expression on url; indexUrlMustMatchPattern = " + mustmatchurl.pattern();
+            if (this.log.isInfo()) this.log.info(info);
             // create a new errorURL DB entry
-            this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, "indexing prevented by regular expression on url; indexUrlMustMatchPattern = " + profile.indexUrlMustMatchPattern().pattern() + ", indexUrlMustNotMatchPattern = " + profile.indexUrlMustNotMatchPattern().pattern(), -1);
+            this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, info, -1);
+            return new IndexingQueueEntry(in.queueEntry, in.documents, null);
+        }
+
+        // check mustnotmatch
+        final Pattern mustnotmatchurl = profile.indexUrlMustNotMatchPattern();
+        if (mustnotmatchurl != CrawlProfile.MATCH_NEVER_PATTERN && mustnotmatchurl.matcher(urls).matches()) {
+            final String info = "Not Condensed Resource '" + urls + "': indexing prevented by regular expression on url; indexUrlMustNotMatchPattern = " + mustnotmatchurl;
+            if (this.log.isInfo()) this.log.info(info);
+            // create a new errorURL DB entry
+            this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, info, -1);
             return new IndexingQueueEntry(in.queueEntry, in.documents, null);
         }
 
         // check which files may take part in the indexing process
         final List<Document> doclist = new ArrayList<>();
         docloop: for (final Document document : in.documents) {
+
+            // check canonical
+            if (profile.noindexWhenCanonicalUnequalURL()) {
+                final AnchorURL canonical = document.getCanonical();
+                final DigestURL source = document.dc_source();
+                if (canonical != null && source != null) {
+                    final String canonical_norm = canonical.toNormalform(true);
+                    final String source_norm = source.toNormalform(true);
+                    if (!canonical_norm.equals(source_norm)) {
+                        final String info = "Not Condensed Resource '" + urls + "': denied, canonical != source; canonical = " +canonical_norm + "; source = " + source_norm;
+                        if (this.log.isInfo()) this.log.info(info);
+                        // create a new errorURL DB entry
+                        this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, info, -1);
+                        continue docloop;
+                    }
+                }
+            }
+
+            // check indexing denied flags
             if (document.indexingDenied() && profile.obeyHtmlRobotsNoindex() && !this.isIntranetMode()) {
                 if (this.log.isInfo()) this.log.info("Not Condensed Resource '" + urls + "': denied by document-attached noindexing rule");
                 // create a new errorURL DB entry
                 this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, "denied by document-attached noindexing rule", -1);
                 continue docloop;
             }
-            if (!(profile.indexContentMustMatchPattern() == CrawlProfile.MATCH_ALL_PATTERN || profile.indexContentMustMatchPattern().matcher(document.getTextString()).matches()) ||
-                 (profile.indexContentMustNotMatchPattern() != CrawlProfile.MATCH_NEVER_PATTERN && profile.indexContentMustNotMatchPattern().matcher(document.getTextString()).matches())) {
-                if (this.log.isInfo()) this.log.info("Not Condensed Resource '" + urls + "': indexing prevented by regular expression on content; indexContentMustMatchPattern = " + profile.indexContentMustMatchPattern().pattern() + ", indexContentMustNotMatchPattern = " + profile.indexContentMustNotMatchPattern().pattern());
+
+            // check content pattern must-match
+            final Pattern mustmatchcontent = profile.indexContentMustMatchPattern();
+            if (mustmatchcontent != CrawlProfile.MATCH_ALL_PATTERN && !mustmatchcontent.matcher(document.getTextString()).matches()) {
+                final String info = "Not Condensed Resource '" + urls + "': indexing prevented by regular expression on content; indexContentMustMatchPattern = " + mustmatchcontent.pattern() ;
+                if (this.log.isInfo()) this.log.info(info);
                 // create a new errorURL DB entry
-                this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, "indexing prevented by regular expression on content; indexContentMustMatchPattern = " + profile.indexContentMustMatchPattern().pattern() + ", indexContentMustNotMatchPattern = " + profile.indexContentMustNotMatchPattern().pattern(), -1);
+                this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, info, -1);
+                continue docloop;
+            }
+
+            // check content pattern must-not-match
+            final Pattern mustnotmatchcontent = profile.indexContentMustNotMatchPattern();
+            if (mustnotmatchcontent != CrawlProfile.MATCH_NEVER_PATTERN && mustnotmatchcontent.matcher(document.getTextString()).matches()) {
+                final String info = "Not Condensed Resource '" + urls + "': indexing prevented by regular expression on content; indexContentMustNotMatchPattern = " + mustnotmatchcontent.pattern();
+                if (this.log.isInfo()) this.log.info(info);
+                // create a new errorURL DB entry
+                this.crawlQueues.errorURL.push(in.queueEntry.url(), in.queueEntry.depth(), profile, FailCategory.FINAL_PROCESS_CONTEXT, info, -1);
                 continue docloop;
             }
 
@@ -3393,13 +3258,13 @@ public final class Switchboard extends serverSwitch {
             if (!(mustMatchMediaType == CrawlProfile.MATCH_ALL_PATTERN
                     || mustMatchMediaType.matcher(document.dc_format()).matches())
                     || (mustNotMatchMediaType != CrawlProfile.MATCH_NEVER_PATTERN
-                            && mustNotMatchMediaType.matcher(document.dc_format()).matches())) {
+                    && mustNotMatchMediaType.matcher(document.dc_format()).matches())) {
                 final String failReason = new StringBuilder(
                         "indexing prevented by regular expression on media type; indexContentMustMatchPattern = ")
-                                .append(CrawlAttribute.INDEXING_MEDIA_TYPE_MUSTMATCH).append(" = ")
-                                .append(mustMatchMediaType.pattern()).append(", ")
-                                .append(CrawlAttribute.INDEXING_MEDIA_TYPE_MUSTNOTMATCH).append(" = ")
-                                .append(mustNotMatchMediaType.pattern()).toString();
+                        .append(CrawlAttribute.INDEXING_MEDIA_TYPE_MUSTMATCH).append(" = ")
+                        .append(mustMatchMediaType.pattern()).append(", ")
+                        .append(CrawlAttribute.INDEXING_MEDIA_TYPE_MUSTNOTMATCH).append(" = ")
+                        .append(mustNotMatchMediaType.pattern()).toString();
                 if (this.log.isInfo()) {
                     this.log.info("Not Condensed Resource '" + urls + " : " + failReason);
                 }
@@ -3422,19 +3287,19 @@ public final class Switchboard extends serverSwitch {
         final Condenser[] condenser = new Condenser[in.documents.length];
         for ( int i = 0; i < in.documents.length; i++ ) {
             condenser[i] =
-                new Condenser(
-                        in.documents[i], in.queueEntry.profile().scraper(), in.queueEntry.profile().indexText(),
-                        in.queueEntry.profile().indexMedia(),
-                        LibraryProvider.dymLib, true,
-                        this.index.fulltext().getDefaultConfiguration().contains(CollectionSchema.dates_in_content_dts),
-                        profile.timezoneOffset());
+                    new Condenser(
+                            in.documents[i], in.queueEntry.profile().scraper(), in.queueEntry.profile().indexText(),
+                            in.queueEntry.profile().indexMedia(),
+                            LibraryProvider.dymLib, true,
+                            this.index.fulltext().getDefaultConfiguration().contains(CollectionSchema.dates_in_content_dts),
+                            profile.timezoneOffset());
 
             // update image result list statistics
             // its good to do this concurrently here, because it needs a DNS lookup
             // to compute a URL hash which is necessary for a double-check
             ResultImages.registerImages(in.queueEntry.url(), in.documents[i], (profile == null)
-                ? true
-                : !profile.remoteIndexing());
+                    ? true
+                            : !profile.remoteIndexing());
         }
         return new IndexingQueueEntry(in.queueEntry, in.documents, condenser);
     }
@@ -3465,12 +3330,12 @@ public final class Switchboard extends serverSwitch {
             for ( int i = 0; i < in.documents.length; i++ ) {
                 final CrawlProfile profile = in.queueEntry.profile();
                 this.storeDocumentIndex(
-                    in.queueEntry,
-                    in.queueEntry.profile().collections(),
-                    in.documents[i],
-                    in.condenser[i],
-                    null,
-                    profile == null ? "crawler" : profile.handle());
+                        in.queueEntry,
+                        in.queueEntry.profile().collections(),
+                        in.documents[i],
+                        in.condenser[i],
+                        null,
+                        profile == null ? "crawler" : profile.handle());
             }
         }
         in.queueEntry.updateStatus(Response.QUEUE_STATE_FINISHED);
@@ -3486,12 +3351,12 @@ public final class Switchboard extends serverSwitch {
      * @param sourceName if this document was created by a crawl, then the sourceName contains the crawl hash
      */
     private void storeDocumentIndex(
-        final Response queueEntry,
-        final Map<String, Pattern> collections,
-        final Document document,
-        final Condenser condenser,
-        final SearchEvent searchEvent,
-        final String sourceName) {
+            final Response queueEntry,
+            final Map<String, Pattern> collections,
+            final Document document,
+            final Condenser condenser,
+            final SearchEvent searchEvent,
+            final String sourceName) {
 
         //TODO: document must carry referer, size and last modified
 
@@ -3519,9 +3384,9 @@ public final class Switchboard extends serverSwitch {
             //if (this.log.isInfo()) log.logInfo("Not Indexed Resource '" + queueEntry.url().toNormalform(false, true) + "': denied by profile rule, process case=" + processCase + ", profile name = " + queueEntry.profile().name());
             // create a new errorURL DB entry
             this.crawlQueues.errorURL.push(url, queueEntry.depth(), profile, FailCategory.FINAL_LOAD_CONTEXT, "denied by profile rule, process case="
-                                + processCase
-                                + ", profile name = "
-                                + profile.collectionName(), -1);
+                    + processCase
+                    + ", profile name = "
+                    + profile.collectionName(), -1);
             return;
         }
 
@@ -3544,33 +3409,33 @@ public final class Switchboard extends serverSwitch {
             this.crawlQueues.errorURL.push(url, queueEntry.depth(), profile, FailCategory.FINAL_LOAD_CONTEXT,
                     profileSolrFilterError + ", process case=" + processCase + ", profile name = "
                             + profile.collectionName(),
-                    -1);
+                            -1);
             return;
         }
 
         // STORE WORD INDEX
         final SolrInputDocument newEntry =
-            this.index.storeDocument(
-                url,
-                profile,
-                queueEntry.getResponseHeader(),
-                document,
-                vector,
-                language,
-                condenser,
-                searchEvent,
-                sourceName,
-                this.getConfigBool(SwitchboardConstants.NETWORK_UNIT_DHT, false),
-                this.getConfigBool(SwitchboardConstants.PROXY_TRANSPARENT_PROXY, false) ? "http://127.0.0.1:" + sb.getConfigInt(SwitchboardConstants.SERVER_PORT, 8090) : null,
-                this.getConfig("crawler.http.acceptLanguage", null));
+                this.index.storeDocument(
+                        url,
+                        profile,
+                        queueEntry.getResponseHeader(),
+                        document,
+                        vector,
+                        language,
+                        condenser,
+                        searchEvent,
+                        sourceName,
+                        this.getConfigBool(SwitchboardConstants.NETWORK_UNIT_DHT, false),
+                        this.getConfigBool(SwitchboardConstants.PROXY_TRANSPARENT_PROXY, false) ? "http://127.0.0.1:" + sb.getConfigInt(SwitchboardConstants.SERVER_PORT, 8090) : null,
+                                this.getConfig("crawler.http.acceptLanguage", null));
         final RSSFeed feed =
-            EventChannel.channels(queueEntry.initiator() == null
+                EventChannel.channels(queueEntry.initiator() == null
                 ? EventChannel.PROXY
-                : Base64Order.enhancedCoder.equal(
-                    queueEntry.initiator(),
-                    ASCII.getBytes(this.peers.mySeed().hash))
-                    ? EventChannel.LOCALINDEXING
-                    : EventChannel.REMOTEINDEXING);
+                        : Base64Order.enhancedCoder.equal(
+                                queueEntry.initiator(),
+                                ASCII.getBytes(this.peers.mySeed().hash))
+                        ? EventChannel.LOCALINDEXING
+                                : EventChannel.REMOTEINDEXING);
         feed.addMessage(new RSSMessage("Indexed web page", dc_title, queueEntry.url(), ASCII.String(queueEntry.url().hash())));
         if (this.getConfigBool(SwitchboardConstants.DECORATION_AUDIO, false)) Audio.Soundclip.newdoc.play(-20.0f);
 
@@ -3590,12 +3455,12 @@ public final class Switchboard extends serverSwitch {
 
         // update url result list statistics
         ResultURLs.stack(
-            ASCII.String(url.hash()), // loaded url db entry
-            url.getHost(),
-            queueEntry.initiator(), // initiator peer hash
-            UTF8.getBytes(this.peers.mySeed().hash), // executor peer hash
-            processCase // process case
-            );
+                ASCII.String(url.hash()), // loaded url db entry
+                url.getHost(),
+                queueEntry.initiator(), // initiator peer hash
+                UTF8.getBytes(this.peers.mySeed().hash), // executor peer hash
+                processCase // process case
+                );
 
         // update profiling info
         if ( System.currentTimeMillis() - lastPPMUpdate > 20000 ) {
@@ -3642,7 +3507,7 @@ public final class Switchboard extends serverSwitch {
             if ((indexFilterQuery != null && !indexFilterQuery.isEmpty()
                     && !CrawlProfile.SOLR_MATCH_ALL_QUERY.equals(indexFilterQuery))
                     || (indexSolrQueryMustNotMatch != null
-                            && !CrawlProfile.SOLR_EMPTY_QUERY.equals(indexSolrQueryMustNotMatch))) {
+                    && !CrawlProfile.SOLR_EMPTY_QUERY.equals(indexSolrQueryMustNotMatch))) {
                 final EmbeddedInstance embeddedSolr = this.index.fulltext().getEmbeddedInstance();
                 final SolrCore embeddedCore = embeddedSolr != null ? embeddedSolr.getDefaultCore() : null;
                 final boolean embeddedSolrConnected = embeddedSolr != null && embeddedCore != null;
@@ -3682,12 +3547,12 @@ public final class Switchboard extends serverSwitch {
     }
 
     public final void addAllToIndex(
-        final DigestURL url,
-        final Map<AnchorURL, String> links,
-        final SearchEvent searchEvent,
-        final String heuristicName,
-        final Map<String, Pattern> collections,
-        final boolean doublecheck) {
+            final DigestURL url,
+            final Map<AnchorURL, String> links,
+            final SearchEvent searchEvent,
+            final String heuristicName,
+            final Map<String, Pattern> collections,
+            final boolean doublecheck) {
 
         final List<DigestURL> urls = new ArrayList<>();
         // add the landing page to the index. should not load that again since it should be in the cache
@@ -3807,7 +3672,7 @@ public final class Switchboard extends serverSwitch {
      * @param url
      * @return null if this was ok. If this failed, return a string with a fail reason
      */
-    public String stackUrl(CrawlProfile profile, DigestURL url) {
+    public String stackUrl(final CrawlProfile profile, final DigestURL url) {
 
         final byte[] handle = ASCII.getBytes(profile.handle());
 
@@ -3943,7 +3808,7 @@ public final class Switchboard extends serverSwitch {
                 continue;
             }
             requests.add(request);
-            }
+        }
 
         new Thread() {
             @Override
@@ -3977,12 +3842,12 @@ public final class Switchboard extends serverSwitch {
                                 ResultImages.registerImages(url, document, true);
                                 Switchboard.this.webStructure.generateCitationReference(url, document);
                                 Switchboard.this.storeDocumentIndex(
-                                    response,
-                                    collections,
-                                    document,
-                                    condenser,
-                                    searchEvent,
-                                    "heuristic:" + heuristicName);
+                                        response,
+                                        collections,
+                                        document,
+                                        condenser,
+                                        searchEvent,
+                                        "heuristic:" + heuristicName);
                                 Switchboard.this.log.info("addToIndex fill of url " + urlName + " finished");
                             }
                         }
@@ -3996,7 +3861,7 @@ public final class Switchboard extends serverSwitch {
         }.start();
     }
 
-     /**
+    /**
      * add urls to Crawler - which itself loads the URL, parses the content and adds it to the index
      * transparent alternative to "addToIndex" including, double in crawler check, display in crawl monitor
      * but doesn't return results for a ongoing search
@@ -4049,22 +3914,22 @@ public final class Switchboard extends serverSwitch {
                     "");
             if ( response == null ) {
                 Switchboard.this.log.info("Sending crawl receipt for '"
-                    + this.reference.url().toNormalform(true)
-                    + "' to "
-                    + this.initiatorPeer.getName()
-                    + " FAILED, send time = "
-                    + (System.currentTimeMillis() - t));
+                        + this.reference.url().toNormalform(true)
+                        + "' to "
+                        + this.initiatorPeer.getName()
+                        + " FAILED, send time = "
+                        + (System.currentTimeMillis() - t));
                 return;
             }
             final String delay = response.get("delay");
             Switchboard.this.log.info("Sending crawl receipt for '"
-                + this.reference.url().toNormalform(true)
-                + "' to "
-                + this.initiatorPeer.getName()
-                + " success, delay = "
-                + delay
-                + ", send time = "
-                + (System.currentTimeMillis() - t));
+                    + this.reference.url().toNormalform(true)
+                    + "' to "
+                    + this.initiatorPeer.getName()
+                    + " success, delay = "
+                    + delay
+                    + ", send time = "
+                    + (System.currentTimeMillis() - t));
         }
     }
 
@@ -4072,13 +3937,10 @@ public final class Switchboard extends serverSwitch {
     /**
      * check authentication status for request access shall be granted if return value >= 2; these are the
      * cases where an access is granted to protected pages:
-     * - a password is not configured: auth-level 2
      * - access from localhost is granted and access comes from localhost: auth-level 3
-     * - a password is configured and access comes from localhost and the realm-value
+     * - access comes from localhost and the realm-value
      *   of a http-authentify String is equal to the stored base64MD5: auth-level 3
-     * - an empty password is configured an access comes from anywhere: auth-level 3
-     *   This may be used in cluster installations where the cluster has an outside protection but inside is none needed.
-     * - a password is configured and access comes with matching http-authentify: auth-level 4
+     * - access comes with matching http-authentify: auth-level 4
      *
      * @param requestHeader
      *  - requestHeader.AUTHORIZATION = B64encode("adminname:password") or = B64encode("adminname:valueOf_Base64MD5cft")
@@ -4093,20 +3955,7 @@ public final class Switchboard extends serverSwitch {
         // TODO: same is true for credential checks below (at least with BASIC auth -> login should expire at least on restart
         if (requestHeader.isUserInRole(UserDB.AccessRight.ADMIN_RIGHT.toString())) {
             if (this.adminAuthenticationLastAccess + 60000 > System.currentTimeMillis()) // 1 minute
-            return 4; // hard-authenticated, quick return
-        }
-
-        // authorization in case that there is no account stored
-        final String adminAccountUserName = this.getConfig(SwitchboardConstants.ADMIN_ACCOUNT_USER_NAME, "admin");
-        final String adminAccountBase64MD5 = this.getConfig(SwitchboardConstants.ADMIN_ACCOUNT_B64MD5, "");
-        if ( adminAccountBase64MD5.isEmpty() ) {
-            this.adminAuthenticationLastAccess = System.currentTimeMillis();
-            return 2; // no password stored; this should not happen for older peers
-        }
-
-        // authorization in case that administrators have stored an empty password; this authorizes all users as admin regardless of the give auth
-        if (adminAccountBase64MD5.equals(this.emptyPasswordAdminAccount)) {
-            return 3; // everyone is admin from everywhere
+                return 4; // hard-authenticated, quick return
         }
 
         // authorization for localhost, only if flag is set to grant localhost access as admin
@@ -4145,6 +3994,8 @@ public final class Switchboard extends serverSwitch {
         }
 
         // authorization by encoded password, only for localhost access
+        final String adminAccountUserName = this.getConfig(SwitchboardConstants.ADMIN_ACCOUNT_USER_NAME, "admin");
+        final String adminAccountBase64MD5 = this.getConfig(SwitchboardConstants.ADMIN_ACCOUNT_B64MD5, "");
         final String pass = Base64Order.standardCoder.encodeString(adminAccountUserName + ":" + adminAccountBase64MD5);
         if ( accessFromLocalhost && (pass.equals(realmValue)) ) { // assume realmValue as is in cfg
             this.adminAuthenticationLastAccess = System.currentTimeMillis();
@@ -4186,11 +4037,11 @@ public final class Switchboard extends serverSwitch {
         return 1;
     }
 
-    public String encodeDigestAuth(String user, String pw) {
+    public String encodeDigestAuth(final String user, final String pw) {
         return "MD5:" + Digest.encodeMD5Hex(user + ":" + sb.getConfig(SwitchboardConstants.ADMIN_REALM,"YaCy") + ":" + pw);
     }
 
-    public String encodeBasicAuth(String user, String pw) {
+    public String encodeBasicAuth(final String user, final String pw) {
         return Digest.encodeMD5Hex(user + ":" + pw);
     }
 
@@ -4201,19 +4052,19 @@ public final class Switchboard extends serverSwitch {
     public boolean verifyAuthentication(final RequestHeader header) {
         // handle access rights
         switch ( this.adminAuthenticated(header) ) {
-            case 0: // wrong password given
-                //try { Thread.sleep(3000); } catch (final InterruptedException e) { } // prevent brute-force
-                return false;
-            case 1: // no password given
-                return false;
-            case 2: // no password stored
-                return true;
-            case 3: // soft-authenticated for localhost only
-                return true;
-            case 4: // hard-authenticated, all ok
-                return true;
-            default:
-                return false;
+        case 0: // wrong password given
+            //try { Thread.sleep(3000); } catch (final InterruptedException e) { } // prevent brute-force
+            return false;
+        case 1: // no password given
+            return false;
+        case 2: // no password stored
+            return true;
+        case 3: // soft-authenticated for localhost only
+            return true;
+        case 4: // hard-authenticated, all ok
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -4243,19 +4094,19 @@ public final class Switchboard extends serverSwitch {
         final Segment indexSegment = this.index;
         if ( indexSegment.RWICount() < 100 ) {
             return "no DHT distribution: not enough words - wordIndex.size() = "
-                + indexSegment.RWICount();
+                    + indexSegment.RWICount();
         }
         if ( (this.getConfig(SwitchboardConstants.INDEX_DIST_ALLOW_WHILE_CRAWLING, "false").equalsIgnoreCase("false")) && (!this.crawlQueues.noticeURL.isEmptyLocal()) ) {
             return "no DHT distribution: crawl in progress: noticeURL.stackSize() = "
-                + this.crawlQueues.noticeURL.size()
-                + ", sbQueue.size() = "
-                + this.getIndexingProcessorsQueueSize();
+                    + this.crawlQueues.noticeURL.size()
+                    + ", sbQueue.size() = "
+                    + this.getIndexingProcessorsQueueSize();
         }
         if ( (this.getConfig(SwitchboardConstants.INDEX_DIST_ALLOW_WHILE_INDEXING, "false").equalsIgnoreCase("false")) && (this.getIndexingProcessorsQueueSize() > 1) ) {
             return "no DHT distribution: indexing in progress: noticeURL.stackSize() = "
-                + this.crawlQueues.noticeURL.size()
-                + ", sbQueue.size() = "
-                + this.getIndexingProcessorsQueueSize();
+                    + this.crawlQueues.noticeURL.size()
+                    + ", sbQueue.size() = "
+                    + this.getIndexingProcessorsQueueSize();
         }
 
         return null; // this means; yes, please do dht transfer
@@ -4276,17 +4127,17 @@ public final class Switchboard extends serverSwitch {
         final long kbytesUp = ConnectionInfo.getActiveUpbytes() / 1024;
         // accumulate RWIs to transmission buffer
         if ( this.dhtDispatcher.bufferSize() > this.peers.scheme.verticalPartitions() ) {
-            this.log.info("dhtTransferJob: no selection, too many entries in transmission buffer: "
-                + this.dhtDispatcher.bufferSize());
+            this.log.fine("dhtTransferJob: no selection, too many entries in transmission buffer: "
+                    + this.dhtDispatcher.bufferSize());
         } else if ( MemoryControl.available() < 1024 * 1024 * 25 ) {
             this.log.info("dhtTransferJob: no selection, too less memory available : "
-                + (MemoryControl.available() / 1024 / 1024)
-                + " MB");
+                    + (MemoryControl.available() / 1024 / 1024)
+                    + " MB");
         } else if ( ConnectionInfo.getLoadPercent() > 50 ) {
             this.log.info("dhtTransferJob: too many connections in httpc pool : "
-                + ConnectionInfo.getCount());
+                    + ConnectionInfo.getCount());
             // close unused connections
-//            Client.cleanup();
+            //            Client.cleanup();
         } else if ( kbytesUp > 128 ) {
             this.log.info("dhtTransferJob: too much upload(1), currently uploading: " + kbytesUp + " Kb");
         } else {
@@ -4307,32 +4158,32 @@ public final class Switchboard extends serverSwitch {
             this.log.info("dhtTransferJob: selected " + ASCII.String(startHash) + " as start hash");
             this.log.info("dhtTransferJob: selected " + ASCII.String(limitHash) + " as limit hash");
             final boolean enqueued =
-                this.dhtDispatcher.selectContainersEnqueueToBuffer(
-                    startHash,
-                    limitHash,
-                    dhtMaxContainerCount,
-                    this.dhtMaxReferenceCount,
-                    5000);
+                    this.dhtDispatcher.selectContainersEnqueueToBuffer(
+                            startHash,
+                            limitHash,
+                            dhtMaxContainerCount,
+                            this.dhtMaxReferenceCount,
+                            5000);
             hasDoneSomething = hasDoneSomething | enqueued;
-            this.log.info("dhtTransferJob: result from enqueueing: " + ((enqueued) ? "true" : "false"));
+            this.log.fine("dhtTransferJob: result from enqueueing: " + ((enqueued) ? "true" : "false"));
         }
 
         // check if we can deliver entries to other peers
         if ( this.dhtDispatcher.transmissionSize() >= 10 ) {
             this.log
-                .info("dhtTransferJob: no dequeueing from buffer to transmission: too many concurrent sessions: "
+            .info("dhtTransferJob: no dequeueing from buffer to transmission: too many concurrent sessions: "
                     + this.dhtDispatcher.transmissionSize());
         } else if ( ConnectionInfo.getLoadPercent() > 75 ) {
             this.log.info("dhtTransferJob: too many connections in httpc pool : "
-                + ConnectionInfo.getCount());
+                    + ConnectionInfo.getCount());
             // close unused connections
-//            Client.cleanup();
+            //            Client.cleanup();
         } else if ( kbytesUp > 256 ) {
             this.log.info("dhtTransferJob: too much upload(2), currently uploading: " + kbytesUp + " Kb");
         } else {
             final boolean dequeued = this.dhtDispatcher.dequeueContainer();
             hasDoneSomething = hasDoneSomething | dequeued;
-            this.log.info("dhtTransferJob: result from dequeueing: " + ((dequeued) ? "true" : "false"));
+            this.log.fine("dhtTransferJob: result from dequeueing: " + ((dequeued) ? "true" : "false"));
         }
         return hasDoneSomething;
     }
@@ -4447,9 +4298,9 @@ public final class Switchboard extends serverSwitch {
      */
     @Deprecated // not used (since 2015-01-18, v1.81)
     public final void heuristicRSS(
-        final String urlpattern,
-        final SearchEvent searchEvent,
-        final String feedName) {
+            final String urlpattern,
+            final SearchEvent searchEvent,
+            final String feedName) {
 
         new Thread("heuristicRSS:" + feedName) {
             @Override
@@ -4467,7 +4318,7 @@ public final class Switchboard extends serverSwitch {
                 searchEvent.oneFeederStarted();
                 try {
                     final Response response =
-                        Switchboard.this.loader.load(Switchboard.this.loader.request(url, true, false), CacheStrategy.NOCACHE, BlacklistType.SEARCH, ClientIdentification.yacyIntranetCrawlerAgent);
+                            Switchboard.this.loader.load(Switchboard.this.loader.request(url, true, false), CacheStrategy.NOCACHE, BlacklistType.SEARCH, ClientIdentification.yacyIntranetCrawlerAgent);
                     final byte[] resource = (response == null) ? null : response.getContent();
                     rss = resource == null ? null : RSSReader.parse(RSSFeed.DEFAULT_MAXSIZE, resource);
                     if ( rss != null ) {
@@ -4482,10 +4333,10 @@ public final class Switchboard extends serverSwitch {
                         }
 
                         ConcurrentLog.info("heuristicRSS", "Heuristic: adding "
-                            + links.size()
-                            + " links from '"
-                            + feedName
-                            + "' rss feed");
+                                + links.size()
+                                + " links from '"
+                                + feedName
+                                + "' rss feed");
                         // add all pages to the index
                         Switchboard.this.addAllToIndex(null, links, searchEvent, feedName, CrawlProfile.collectionParser("rss"), true);
                     }
@@ -4545,7 +4396,7 @@ public final class Switchboard extends serverSwitch {
         mySeed.put(Seed.ICOUNT, Long.toString(this.index.RWICount())); // the minimum number of words that the peer has indexed (as it says)
         mySeed.put(Seed.SCOUNT, Integer.toString(this.peers.sizeConnected())); // the number of seeds that the peer has stored
         mySeed.put(Seed.CCOUNT, Float.toString(((int) ((this.peers.sizeConnected() + this.peers.sizeDisconnected() + this.peers.sizePotential()) * 60.0f / (uptime + 1.01f)) * 100.0f) / 100.0f)); // the number of clients that the peer connects (as connects/hour)
-        mySeed.put(Seed.VERSION, yacyBuildProperties.getLongVersion());
+        mySeed.put(Seed.VERSION, yacyBuildProperties.getReleaseStub());
         mySeed.setFlagDirectConnect(true);
         mySeed.setLastSeenUTC();
         mySeed.put(Seed.UTC, GenericFormatter.UTCDiffString());

@@ -232,7 +232,7 @@ YaCy '#[clientname]#': Bookmarks==YaCy '#[clientname]#': Закладки
 The bookmarks list can also be retrieved as RSS feed. This can also be done when you select a specific tag.==Список закладок може також бути отриманий як RSS. Це можливо також при виборі конкретних ключових слів.
 
 Click the API icon to load the RSS from the current selection.==Натисніть на піктограму API для завантаження RSS з поточного вибору.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Для перегляду списку всіх API, будь-ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">сторінку API у Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Для перегляду списку всіх API, будь-ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">сторінку API у Wiki</a>.
 
 <h3>Bookmarks==<h3>Закладки
 Bookmarks (==Закладки (
@@ -1995,7 +1995,7 @@ YaCy Search Network==Пошукова мережа YaCy
 YaCy Network<==Мережа YaCy<
 The information that is presented on this page can also be retrieved as XML.==Інформацію на цій сторінці також можна отримати в форматі XML.
 Click the API icon to see the XML.==Натисніть значок API для відображення XML.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Для перегляду списку всіх API, будь-ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">сторінку API у Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Для перегляду списку всіх API, будь-ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">сторінку API у Wiki</a>.
 Network Overview==Огляд мережі
 Active&nbsp;Peers==Активні&nbsp;вузли
 Passive&nbsp;Peers==Пасивні&nbsp;вузли
@@ -3011,7 +3011,7 @@ Call Count<==Виклики<
 Scheduled actions are executed after the next execution date has arrived within a time frame of #[tfminutes]# minutes.==Заплановані дії виконуються в межах тимчасове вікна в #[tfminutes]# хвилин, коли наступна дата виконання буде досягнута.
 The information that is presented on this page can also be retrieved as XML.==Інформацію на цій сторінці також можна отримати в форматі XML.
 Click the API icon to see the XML.==Натисніть значок API для відображення XML.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Для перегляду списку всіх API, будь-ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">сторінку API у Wiki</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Для перегляду списку всіх API, будь-ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">сторінку API у Wiki</a>.
 #-----------------------------
 
 #File: Table_RobotsTxt_p.html
@@ -3019,7 +3019,7 @@ To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de
 Table Viewer==Перегляд таблиці
 The information that is presented on this page can also be retrieved as XML.==Інформацію на цій сторінці також можна отримати в форматі XML.
 Click the API icon to see the XML.==Натисніть значок API для відображення XML.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Щоб побачити список усіх API, будь ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">вікі-сторінку API</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Щоб побачити список усіх API, будь ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">вікі-сторінку API</a>.
 >robots.txt table<==>Таблиця robots.txt<
 #-----------------------------
 
@@ -3242,7 +3242,7 @@ The data that is visualized here can also be retrieved in a XML file, which list
 With a GET-property 'about' you get only reference relations about the host that you give in the argument field for 'about'.==З властивістю GET "about" можна витягувати тільки зв’язки відносно сервера, поданого в полі аргументу "about".
 With a GET-property 'latest' you get a list of references that had been computed during the current run-time of YaCy, and with each next call only an update to the next list of references.==З властивістю GET "latest" можна отримати список посилань, що був розрахований протягом поточної роботи YaCy. І з кожним викликом, тільки оновлення до наступного списку посилань.
 Click the API icon to see the XML file.==Натисніть значок API для перегляду XML-файлу.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Щоб переглянути список усіх API, будь ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">вікі-сторінку API</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Щоб переглянути список усіх API, будь ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">вікі-сторінку API</a>.
 
 Web Structure==Структура мережі
 host<==хост<
@@ -3346,7 +3346,7 @@ YaCy Interactive Search==Живий пошук YaCy
 This search result can also be retrieved as RSS/<a href="http://www.opensearch.org">opensearch</a> output.==Результати пошуку можна отримати також у вигляді RSS/<a href="http://www.opensearch.org">opensearch</a>.
 The query format is similar to <a href="http://www.loc.gov/standards/sru/">SRU</a>.==Формат запитів подібний до <a href="http://www.loc.gov/standards/sru/">SRU</a>.
 Click the API icon to see an example call to the search rss API.==Щиглик API, щоб побачити зразок виклику пошукового API RSS.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Щоб побачити список усіх API, будь ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">вікі-сторінку API</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Щоб побачити список усіх API, будь ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">вікі-сторінку API</a>.
 loading from local index...==завантаження з місцевого індексу...
 e="Search"==e="Пошук"
 #-----------------------------
@@ -3357,7 +3357,7 @@ Search Page==Сторінка пошуку
 This search result can also be retrieved as RSS/<a href="http://www.opensearch.org">opensearch</a> output.==Ці результати пошуку також доступні у вигляді RSS/<a href="http://www.opensearch.org">opensearch</a>.
 The query format is similar to <a href="http://www.loc.gov/standards/sru/">SRU</a>.==Формат запиту схожий на <a href="http://www.loc.gov/standards/sru/">SRU</a>.
 Click the API icon to see an example call to the search rss API.==Клацніть по значку API, щоб побачити зразок виклику пошукового API RSS.
-To see a list of all APIs, please visit the <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">API wiki page</a>.==Щоб побачити список усіх API, будь ласка, відвідайте <a href="http://www.yacy-websuche.de/wiki/index.php/Dev:API">вікі-сторінку API</a>.
+To see a list of all APIs, please visit the <a href="https://wiki.yacy.net/index.php/Dev:API">API wiki page</a>.==Щоб побачити список усіх API, будь ласка, відвідайте <a href="https://wiki.yacy.net/index.php/Dev:API">вікі-сторінку API</a>.
 Did you mean:==Можливо, ви мали на увазі:
 "Search"=="Пошук"
 'Search'=='Пошук'
@@ -3780,187 +3780,23 @@ and set upload/download accounts to author and access content on this peer==та
 loading from local index==Завантаження з місцевого індексу
 #-----------------------------
 
-#File: yacy/ui/js/jquery-flexigrid.js
+#File: js/jquery-flexigrid.js
 #---------------------------
 'Displaying {from} to {to} of {total} items'=='Показано {from} до {to} з {total} записів'
 'Processing, please wait ...'=='В обробці. Будь-ласка, зачекайте ...'
 'No items'=='Результати відсутні'
 #-----------------------------
 
-#File: yacy/ui/js/jquery-ui-1.7.2.min.js
+#File: js/jquery-ui-1.7.2.min.js
 #---------------------------
 Loading&#8230;==Завантаження&#8230;
 #-----------------------------
 
-#File: yacy/ui/js/jquery.ui.all.min.js
+#File: js/jquery.ui.all.min.js
 #---------------------------
 Loading&#8230;==Завантаження&#8230;
 #-----------------------------
 
-#File: yacy/ui/index.html
-#---------------------------
-About YaCy-UI==Про YaCy-UI
-Admin Console==Адмін. консоль
-"Bookmarks"=="Закладки"
->Bookmarks==>Закладки
-Server Log==Журнал сервера
-This dialog lets you rename (edit) tag names.==Дозволяє редагувати імена ключів.
-You can also add a new tag to all bookmarks tagged with old tag.==Можна також додати новий ключ до всіх закладок позначених старим.
-Old Tag:==Старий ключ:
-New Tag:==Новий ключ:
-YaCy Bookmark Edit Tags==Зміна ключів закладок YaCy
-This dialog lets you add tags or folders to the selected bookmarks.==Це вікно дозволяє додавати ключі чи папки до вибраних закладок.
-Tag Name:==Ім’я ключа:
-YaCy Bookmark Add Tags==Додавання ключів закладок YaCy
-Add or edit bookmark==Додати чи змінити закладку
-Title:==Заголовок:
-Description:==Опис:
-Folder (/folder/subfolder):==Папка (/папка/підпапка):
-Tags (comma separated):==Ключі (через кому):
-Public:==Загальна:
->yes<==>так<
->no<==>ні<
-YaCy Bookmarks==Закладки YaCy
-
-This dialog lets you select an alternate theme/skin for YaCy-UI==Це вікно дозволяє вибрати
-Base Theme==Основна тема
-Custom Theme==Змінена тема
->You can==Ви можете
-download</a> ready made themes or==завантажити</a> готові теми або
-create</a>==створити</a>
-your own custom theme. Themes are installed into==свою власну тему. Теми встановлені в
-YaCy - Peer-to-Peer Search Network==YaCy - однорангова пошукова мережа
-Select YaCy-UI Theme==Вибір теми YaCy-UI
-
-#>Cancel<==>Відхилити<
-#>Edit<==>Змінити<
-#>Add<==>Додати<
-#-----------------------------
-
-#File: yacy/ui/yacyui-admin.html
-#---------------------------
-Peer Control==Вузол
-"Login"=="Ввійти"
-	Login==Ввійти
-Themes==Вигляд
-Messages==Повідомлення
-Re-Start==Перезапуск
-Shutdown==Зупинка
-Web Indexing==Індексування веб
-Crawl Start==Запуск сканування
-Monitoring==Спостереження
-YaCy Network==Мережа YaCy
->Settings==>Налаштування
-"Basic Settings"=="Прості налаштування"
-	Basic==Основні
-Accounts==Облікові записи
-"Network"=="Мережа"
-	Network==Мережа
-"Advanced Settings"=="Розширені налаштування"
-	Advanced==Розширені
-"Update Settings"=="Оновлення системи"
-	Update==Оновлення
->YaCy Project==>Проект YaCy
-"YaCy Project Home"=="Домашня сторінка YaCy"
-	Project==Проект
-"YaCy Statistics"=="Статистика YaCy"
-	Statistics==Статистика
-"YaCy Forum"=="Форум YaCy"
-	Forum==Форум
-"Help"=="Допомога"
-#"YaCy Wiki"=="YaCy Wiki"
-#Wiki==Wiki
-#-----------------------------
-
-#File: yacy/ui/yacyui-bookmarks.html
-#---------------------------
-'Add'=='Додати'
-'Crawl'=='Сканувати'
-'Edit'=='Редагувати'
-'Delete'=='Видалити'
-'Rename'=='Перейменувати'
-'Help'=='Допомога'
-
-#"public bookmark"=="загальна закладка"
-#"private bookmark"=="власна закладка"
-
-#"delete bookmark"=="видалити закладку"
-YaCy Bookmarks==Закладки YaCy
-#>Title==>Заголовок
-#>Tags==>Ключі
-#>Date==>Дата
-'Hash'=='Контр.сума'
-'Public'=='Загальна'
-'Title'=='Заголовок'
-'Tags'=='Ключі'
-'Folders'=='Папки'
-'Date'=='Дата'
-#-----------------------------
-
-#File: yacy/ui/sidebar/sidebar_1.html
-#---------------------------
-YaCy P2P Websearch==YaCy P2P Веб-Пошук
-"Search"=="Пошук"
->Text==>Текст
->Images==>Картинки
->Audio==>Звук
->Video==>Відео
->Applications==>Додатки
-#вираз
-#умова
-#Критерій пошуку
-Search term:==Пошуковий вираз:
-"help"=="Допомога"
-#Засіб
-#Ресурс
-Resource/Network:==Джерело/Мережа:
-freeworld==ВільнийСвіт
-local peer==Місцевий вузол
->bookmarks==>Закладки
-sciencenet==ScienceNet
->Language:==>Мова:
-any language==всі мови
-Bookmark Folders==Папки закладок
-#-----------------------------
-
-#File: yacy/ui/sidebar/sidebar_2.html
-#---------------------------
-Bookmark Tags<==Ключі закладок<
-Search Options==Настроки пошуку
-Constraint:==Обмеження:
-all pages==всі сторінки
-index pages==індексні сторінки
-URL mask:==Фільтр URL:
-Prefer mask:==Бажана маска:
-Bookmark TagCloud==Хмара ключів закладок
-Topwords<==Верхні слова<
-alt="help"==alt="Допомога"
-title="help"==title="Допомога"
-#-----------------------------
-
-#File: yacy/ui/yacyui-view-log.html
-#---------------------------
-'Debug'=='Відладка'
-'Info'=='Інфо'
-'System'=='Система'
-'Warning'=='Попередження'
-'Error'=='Помилка'
-'Help'=='Допомога'
-='Info'==='Інфо'
-#-----------------------------
-
-#File: yacy/ui/yacyui-welcome.html
-#---------------------------
->Overview==>Огляд
-YaCy-UI is going to be a JavaScript based client for YaCy based on the existing XML and JSON API.==YaCy-UI - написаний на JavaScript клієнт для YaCy, який грунтується на існуючих XML і JSON API.
-YaCy-UI is at most alpha status, as there is still problems with retriving the search results.==YaCy-UI, в кращому випадку, в стадії альфа, оскільки ще є проблеми при отриманні результатів пошуку.
-I am currently changing the backend to a more application friendly format and getting good results with it (I will check that in some time after the stable release 0.7).==Я зараз змінюю керування на зручніший формат і отримую гарні результати (я перевірю зміни ще деякий час після виходу стабільного випуску 0.7).
-For now have a look at the bookmarks, performance has increased significantly, due to the use of JSON and Flexigrid!==В даний час ви можете переглянути закладки - продуктивність значно покращилась за рахунок використання JSON і Flexigrid!
->Change Log<==>Журнал змін<
->Bug Tracker<==>Помилки<
-Please report bugs in the official==Будь-ласка, повідомляйте про помилки на офіційному
-YaCy-Forum</a> - thanks==форумі YaCy</a> - дякую
-#-----------------------------
 
 #File: AccessGrid_p.html
 #---------------------------
@@ -4062,7 +3898,7 @@ Active==Діє
 Attribute==Властивість
 Comment==Примітка
 Set==Виставити
-</body>==<script>window.onload = function () {$("td:contains('url of document, string')").text('url документу, string'); $("td:contains('primary key of document, the URL hash, string')").text('первинний ключ документу, контрольна сума URL, string'); $("td:contains('longitude of location as declared in WSG84, tdouble')").text('довгота місцевості як визначено у WSG84, tdouble'); $("td:contains('last-modified from http header, date')").text('востаннє змінений із заголовку http, date'); $("td:contains('ip of host of url (after DNS lookup), string')").text('ip розміщення url (після DNS-пошуку), string'); $("td:contains('mime-type of document, string')").text('mime-тип документу, string'); $("td:contains('content of title tag, text')").text('вміст тегу title, text'); $("td:contains('content of author-tag, texgen')").text('вміст тегу author, texgen'); $("td:contains('content of description-tag, text')").text('вміст тегу description, text'); $("td:contains('content of keywords tag; words are separated by space, textgen')").text('вміст тегу keywords; слова розділені пропуском, textgen'); $("td:contains('character encoding, string')").text('кодування знаків, string'); $("td:contains('tags of css entries, normalized with absolute URL, textgen')").text('теги записів css, вирівняні до аблолютних URL, textgen'); $("td:contains('urls of css entries, normalized with absolute URL, textgen')").text('url записів css, вирівняні до абсолютних URL, textgen'); $("td:contains('number of css entries, int')").text('кількість записів css, int'); $("td:contains('urls of script entries, normalized with absolute URL, textgen')").text('url записів сценарію, вирівняні до абсолютних URL, textgen'); $("td:contains('number of script entries, int')").text('кількість записів сценарію, int'); $("td:contains('content of <meta name=.robots')").text('вміст тегу <meta name="robots" content=#content> і the "X-Robots-Tag" HTTP властивостей'); $("td:contains('html status return code')").text('html код повернення стану (наприклад, "200" для ok), -1 якщо не завантажено, int'); $("td:contains('content of <meta name=.generator')").text('вміст тегу <meta name="generator" content=#content#>, text'); $("td:contains('all visible text, text')").text('видимий текст, text'); $("td:contains('number of words in visible area, int')").text('кількість слів у видимій області, int'); $("td:contains('internal links, normalized (absolute URLs), as <a')").text('внутрішні посилання, вирівняні (абсолютні URL), як <a> -тег якорями text і nofollow, textgen'); $("td:contains('internal links, only the protocol')").text('внутрішні посилання, тільки протокол'); $("td:contains('internal links, the url only without the protocol')").text('внутрішні посилання, тільки url без протоколу'); $("td:contains('internal links, the name property of the a-tag')").text('внутрішні посилання, властивість name a-тегу'); $("td:contains('internal links, the text content of the a-tag')").text('внутрішні посилання, текстовий вміст a-тегу'); $("td:contains('total number of inbound links, int')").text('загальне число вхідних посилань, int'); $("td:contains('number of inbound links with noindex tag, int')").text('кількість вхідних посилань з тегом noindex, int'); $("td:contains('external links, normalized (absolute URLs), as <a')").text('зовнішні посилання, вирівняні (абсолютні URL), як <a> - тег з якорями text і nofollow, textgen'); $("td:contains('external links, only the protocol')").text('зовнішні посилання, тільки протокол'); $("td:contains('external links, the url only without the protocol')").text('зовнішні посилання, тільки url без протоколу'); $("td:contains('external links, the name property of the a-tag')").text('зовнішні посилання, властивість name a-тегу'); $("td:contains('external links, the text content of the a-tag')").text('зовнішні посилання, текстовий вміст a-тегу'); $("td:contains('external number of inbound links, int')").text('зовнішнє число вхідних посилань, int'); $("td:contains('number of external links with noindex tag, int')").text('кількість зовнішніх посилань з тегом noindex, int'); $("td:contains('all image tags, encoded as <img')").text('всі теги зображень, закодовані як теги <img> включаючи властивості alt- і title, textgen'); $("td:contains('all image links without the protocol and '://'')").text('всі посилання на зображення без протоколу і "://"'); $("td:contains('all image link protocols')").text('всі протокли посилань на зображення'); $("td:contains('all image link alt tag')").text('alt-теги всіх посилань на зображення'); $("td:contains('number of images, int')").text('кількість зображень, int'); $("td:contains('h1 header, textgen')").text('заголовок h1, textgen'); $("td:contains('h2 header, textgen')").text('заголовок h2, textgen'); $("td:contains('h3 header, textgen')").text('заголовок h3, textgen'); $("td:contains('h4 header, textgen')").text('заголовок h4, textgen'); $("td:contains('h5 header, textgen')").text('заголовок h5, textgen'); $("td:contains('h6 header, textgen')").text('заголовок h6, textgen'); $("td:contains('binary pattern for the existance of h1..h6 headlines, int')").text('двійковий шаблон для наявності заголовків h1..h6, int'); $("td:contains('all path elements in the url, textgen')").text('всі елементи шляху в url, textgen'); $("td:contains('host of the url, string')").text('хост url, string'); $("td:contains('url inside the canonical link element, string')").text('url всередині сталого елементу посилання, string'); $("td:contains('all texts in <li')").text('всі тексти в тегах <li>, textgen'); $("td:contains('number of <li')").text('кількість тегів <li>, int'); $("td:contains('all texts inside of <b')").text('всі тексти всередині тегів <b> чи <strong>. без повторів. подані відносно кількості входжень в порядку спадання, textgen'); $("td:contains('number of occurrences of texts in attr_bold, textgen')").text('кількість входжень текстів в attr_bold, textgen'); $("td:contains('total number of occurrences of <b')").text('загальна кількість входжень <b> або <strong>, int'); $("td:contains('all texts inside of <i')").text('всі тексти всереді тегів <i>. без повторів. подано відносно кількості входжень в порядку спадання, textgen'); $("td:contains('number of occurrences of texts in attr_italic, textgen')").text('кількість входжень текстів в attr_italic, textgen'); $("td:contains('total number of occurrences of <i')").text('загальне число входжень <i>, int'); $("td:contains('flag that shows if a swf file is linked, boolean')").text('прапор, що показує чи прив’язаний файл swf, boolean'); $("td:contains('list of all links to frames, textgen')").text('список усіх посилань до frame-ів, textgen'); $("td:contains('number of attr_frames, int')").text('кількість attr_frames, int'); $("td:contains('list of all links to iframes, textgen')").text('кількість посилань на iframe-и, textgen'); $("td:contains('number of attr_iframes, int')").text('кількість attr_iframes, int'); $("td:contains('names of cms attributes; if several are recognized then they are listen in decreasing order of number of matching criterias, textgen')").text('імена властивостей cms; якщо декілька розпізнані, вони подаються в спадному порядку від співпадаючих критеріїв, textgen'); $("td:contains('number of attributes that count for a specific cms in attr_cms, textgen')").text('кількість властивостей конкретних cms в attr_cms, textgen'); $("td:contains('names of ad-servers/ad-services, textgen')").text('імена ad-servers/ad-services, textgen'); $("td:contains('number of attributes counts in attr_ads, textgen')").text('кількість входжень властивостей в attr_ads, textgen'); $("td:contains('names of recognized community functions, textgen')").text('імена розпізнаних функцій спільноти, textgen'); $("td:contains('number of attribute counts in attr_community, textgen')").text('кількість входжень властивостей в attr_community, textgen'); $("td:contains('names of map services, textgen')").text('назви картографічних служб, textgen'); $("td:contains('number of attribute counts in attr_maps, textgen')").text('кількість властивостей в attr_maps, textgen'); $("td:contains('names of tracker server, textgen')").text('імена серверів-спостерігачів, textgen'); $("td:contains('number of attribute counts in attr_tracker, textgen')").text('кількість властивостей в attr_tracker, textgen'); $("td:contains('names matching title expressions, textgen')").text('імена співпадаючі з виразом заголовку, textgen'); $("td:contains('number of matching title expressions, textgen')").text('кількість виразів співпадаючих із заголовком, textgen'); $("td:contains('fail reason if a page was not loaded. if the page was loaded then this field is empty, text')").text('причина невдачі, якщо сторінка не була завантажена. якщо ж сторінка була завантажена, тоді це поле порожнє, text'); $("td:contains('response time of target server in milliseconds, int')").text('час відгуку кінцевого серверу в мілісекундах, int'); $("td:contains('internal links, the rel property of the a-tag, coded binary')").text('внутрішні посилання, властивість rel a-тега, coded binary'); $("td:contains('internal links, the rel property of the a-tag')").text('внутрішні посилання, властивість rel a-тега'); $("td:contains('external links, the rel property of the a-tag, coded binary')").text('зовнішні посилання, властивість rel a-тега, coded binary'); $("td:contains('external links, the rel property of the a-tag')").text('зовнішні посилання, властивість rel a-тега');}</script></body>
+</body>==<script>window.onload = function () {$("td:contains('url of document, string')").text('url документу, string'); $("td:contains('primary key of document, the URL hash, string')").text('первинний ключ документу, контрольна сума URL, string'); $("td:contains('longitude of location as declared in WSG84, tdouble')").text('довгота місцевості як визначено у WSG84, tdouble'); $("td:contains('last-modified from http header, date')").text('востаннє змінений із заголовку http, date'); $("td:contains('ip of host of url (after DNS lookup), string')").text('ip розміщення url (після DNS-пошуку), string'); $("td:contains('mime-type of document, string')").text('mime-тип документу, string'); $("td:contains('content of title tag, text')").text('вміст тегу title, text'); $("td:contains('content of author-tag, texgen')").text('вміст тегу author, texgen'); $("td:contains('content of description-tag, text')").text('вміст тегу description, text'); $("td:contains('content of keywords tag; words are separated by comma, semicolon or space, textgen')").text('вміст тегу keywords; слова розділені пропуском, textgen'); $("td:contains('character encoding, string')").text('кодування знаків, string'); $("td:contains('tags of css entries, normalized with absolute URL, textgen')").text('теги записів css, вирівняні до аблолютних URL, textgen'); $("td:contains('urls of css entries, normalized with absolute URL, textgen')").text('url записів css, вирівняні до абсолютних URL, textgen'); $("td:contains('number of css entries, int')").text('кількість записів css, int'); $("td:contains('urls of script entries, normalized with absolute URL, textgen')").text('url записів сценарію, вирівняні до абсолютних URL, textgen'); $("td:contains('number of script entries, int')").text('кількість записів сценарію, int'); $("td:contains('content of <meta name=.robots')").text('вміст тегу <meta name="robots" content=#content> і the "X-Robots-Tag" HTTP властивостей'); $("td:contains('html status return code')").text('html код повернення стану (наприклад, "200" для ok), -1 якщо не завантажено, int'); $("td:contains('content of <meta name=.generator')").text('вміст тегу <meta name="generator" content=#content#>, text'); $("td:contains('all visible text, text')").text('видимий текст, text'); $("td:contains('number of words in visible area, int')").text('кількість слів у видимій області, int'); $("td:contains('internal links, normalized (absolute URLs), as <a')").text('внутрішні посилання, вирівняні (абсолютні URL), як <a> -тег якорями text і nofollow, textgen'); $("td:contains('internal links, only the protocol')").text('внутрішні посилання, тільки протокол'); $("td:contains('internal links, the url only without the protocol')").text('внутрішні посилання, тільки url без протоколу'); $("td:contains('internal links, the name property of the a-tag')").text('внутрішні посилання, властивість name a-тегу'); $("td:contains('internal links, the text content of the a-tag')").text('внутрішні посилання, текстовий вміст a-тегу'); $("td:contains('total number of inbound links, int')").text('загальне число вхідних посилань, int'); $("td:contains('number of inbound links with noindex tag, int')").text('кількість вхідних посилань з тегом noindex, int'); $("td:contains('external links, normalized (absolute URLs), as <a')").text('зовнішні посилання, вирівняні (абсолютні URL), як <a> - тег з якорями text і nofollow, textgen'); $("td:contains('external links, only the protocol')").text('зовнішні посилання, тільки протокол'); $("td:contains('external links, the url only without the protocol')").text('зовнішні посилання, тільки url без протоколу'); $("td:contains('external links, the name property of the a-tag')").text('зовнішні посилання, властивість name a-тегу'); $("td:contains('external links, the text content of the a-tag')").text('зовнішні посилання, текстовий вміст a-тегу'); $("td:contains('external number of inbound links, int')").text('зовнішнє число вхідних посилань, int'); $("td:contains('number of external links with noindex tag, int')").text('кількість зовнішніх посилань з тегом noindex, int'); $("td:contains('all image tags, encoded as <img')").text('всі теги зображень, закодовані як теги <img> включаючи властивості alt- і title, textgen'); $("td:contains('all image links without the protocol and '://'')").text('всі посилання на зображення без протоколу і "://"'); $("td:contains('all image link protocols')").text('всі протокли посилань на зображення'); $("td:contains('all image link alt tag')").text('alt-теги всіх посилань на зображення'); $("td:contains('number of images, int')").text('кількість зображень, int'); $("td:contains('h1 header, textgen')").text('заголовок h1, textgen'); $("td:contains('h2 header, textgen')").text('заголовок h2, textgen'); $("td:contains('h3 header, textgen')").text('заголовок h3, textgen'); $("td:contains('h4 header, textgen')").text('заголовок h4, textgen'); $("td:contains('h5 header, textgen')").text('заголовок h5, textgen'); $("td:contains('h6 header, textgen')").text('заголовок h6, textgen'); $("td:contains('binary pattern for the existance of h1..h6 headlines, int')").text('двійковий шаблон для наявності заголовків h1..h6, int'); $("td:contains('all path elements in the url, textgen')").text('всі елементи шляху в url, textgen'); $("td:contains('host of the url, string')").text('хост url, string'); $("td:contains('url inside the canonical link element, string')").text('url всередині сталого елементу посилання, string'); $("td:contains('all texts in <li')").text('всі тексти в тегах <li>, textgen'); $("td:contains('number of <li')").text('кількість тегів <li>, int'); $("td:contains('all texts inside of <b')").text('всі тексти всередині тегів <b> чи <strong>. без повторів. подані відносно кількості входжень в порядку спадання, textgen'); $("td:contains('number of occurrences of texts in attr_bold, textgen')").text('кількість входжень текстів в attr_bold, textgen'); $("td:contains('total number of occurrences of <b')").text('загальна кількість входжень <b> або <strong>, int'); $("td:contains('all texts inside of <i')").text('всі тексти всереді тегів <i>. без повторів. подано відносно кількості входжень в порядку спадання, textgen'); $("td:contains('number of occurrences of texts in attr_italic, textgen')").text('кількість входжень текстів в attr_italic, textgen'); $("td:contains('total number of occurrences of <i')").text('загальне число входжень <i>, int'); $("td:contains('flag that shows if a swf file is linked, boolean')").text('прапор, що показує чи прив’язаний файл swf, boolean'); $("td:contains('list of all links to frames, textgen')").text('список усіх посилань до frame-ів, textgen'); $("td:contains('number of attr_frames, int')").text('кількість attr_frames, int'); $("td:contains('list of all links to iframes, textgen')").text('кількість посилань на iframe-и, textgen'); $("td:contains('number of attr_iframes, int')").text('кількість attr_iframes, int'); $("td:contains('names of cms attributes; if several are recognized then they are listen in decreasing order of number of matching criterias, textgen')").text('імена властивостей cms; якщо декілька розпізнані, вони подаються в спадному порядку від співпадаючих критеріїв, textgen'); $("td:contains('number of attributes that count for a specific cms in attr_cms, textgen')").text('кількість властивостей конкретних cms в attr_cms, textgen'); $("td:contains('names of ad-servers/ad-services, textgen')").text('імена ad-servers/ad-services, textgen'); $("td:contains('number of attributes counts in attr_ads, textgen')").text('кількість входжень властивостей в attr_ads, textgen'); $("td:contains('names of recognized community functions, textgen')").text('імена розпізнаних функцій спільноти, textgen'); $("td:contains('number of attribute counts in attr_community, textgen')").text('кількість входжень властивостей в attr_community, textgen'); $("td:contains('names of map services, textgen')").text('назви картографічних служб, textgen'); $("td:contains('number of attribute counts in attr_maps, textgen')").text('кількість властивостей в attr_maps, textgen'); $("td:contains('names of tracker server, textgen')").text('імена серверів-спостерігачів, textgen'); $("td:contains('number of attribute counts in attr_tracker, textgen')").text('кількість властивостей в attr_tracker, textgen'); $("td:contains('names matching title expressions, textgen')").text('імена співпадаючі з виразом заголовку, textgen'); $("td:contains('number of matching title expressions, textgen')").text('кількість виразів співпадаючих із заголовком, textgen'); $("td:contains('fail reason if a page was not loaded. if the page was loaded then this field is empty, text')").text('причина невдачі, якщо сторінка не була завантажена. якщо ж сторінка була завантажена, тоді це поле порожнє, text'); $("td:contains('response time of target server in milliseconds, int')").text('час відгуку кінцевого серверу в мілісекундах, int'); $("td:contains('internal links, the rel property of the a-tag, coded binary')").text('внутрішні посилання, властивість rel a-тега, coded binary'); $("td:contains('internal links, the rel property of the a-tag')").text('внутрішні посилання, властивість rel a-тега'); $("td:contains('external links, the rel property of the a-tag, coded binary')").text('зовнішні посилання, властивість rel a-тега, coded binary'); $("td:contains('external links, the rel property of the a-tag')").text('зовнішні посилання, властивість rel a-тега');}</script></body>
 #-----------------------------
 
 # EOF
